@@ -2,7 +2,7 @@
   "name": "mini-vue",
   "version": "1.0.0",
   "main": "index.js",
-  "license": "ISC",
+  "license": "MIT",
   "scripts": {
     "test": "jest"
   },
