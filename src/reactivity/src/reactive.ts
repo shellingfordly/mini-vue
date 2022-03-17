@@ -1,4 +1,8 @@
-import { mutableHandlers, readonlyHandlers } from "./baseHandlers";
+import {
+  mutableHandlers,
+  readonlyHandlers,
+  shallowReadonlyHandlers,
+} from "./baseHandlers";
 
 const targetMap = new WeakMap();
 
@@ -12,7 +16,15 @@ export function reactive(target): typeof target {
 }
 
 export function readonly(target) {
-  return createReadonlyObject(target, readonlyHandlers);
+  return createReactiveObject(target, readonlyHandlers);
+}
+
+export function shallowReadonly(target) {
+  return createReactiveObject(target, shallowReadonlyHandlers);
+}
+
+export function isProxy(target) {
+  return isReactive(target) || isReadonly(target);
 }
 
 export function isReactive(target) {
@@ -33,8 +45,4 @@ function createReactiveObject(taget, baseHandlers) {
   const result = new Proxy(taget, baseHandlers);
 
   return result;
-}
-
-function createReadonlyObject(target, baseHandlers) {
-  return new Proxy(target, baseHandlers);
 }

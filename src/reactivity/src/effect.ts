@@ -5,13 +5,18 @@ let shouldTrack = false;
 
 const tagetMap = new WeakMap();
 
-class ReactiveEffect {
+export class ReactiveEffect {
   deps = [];
   active = true;
 
   constructor(public fn, public scheduler) {}
 
   run() {
+    // 失活的 effect 直接调用 fn
+    if (!this.active) {
+      return this.fn();
+    }
+
     activeEffect = this;
     shouldTrack = true;
 
@@ -78,14 +83,14 @@ export function track(target, type, key) {
   trackEffects(dep);
 }
 
-function trackEffects(dep) {
+export function trackEffects(dep: Set<ReactiveEffect>) {
   if (!dep.has(activeEffect)) {
     dep.add(activeEffect);
     activeEffect.deps.push(dep);
   }
 }
 
-function isTracking() {
+export function isTracking() {
   return shouldTrack && activeEffect !== null;
 }
 
@@ -100,12 +105,12 @@ export function trigger(target, type, key) {
   triggerEffects(dep);
 }
 
-export function triggerEffects(dep) {
-  dep.forEach((effect) => {
+export function triggerEffects(dep: Set<ReactiveEffect>) {
+  for (const effect of dep) {
     if (effect.scheduler) {
       effect.scheduler();
     } else {
       effect.run();
     }
-  });
+  }
 }

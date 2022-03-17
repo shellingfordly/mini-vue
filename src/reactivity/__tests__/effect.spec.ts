@@ -52,7 +52,7 @@ describe("effect", () => {
     expect(scheduler).not.toHaveBeenCalled();
     expect(doubleCount).toBe(2);
 
-    count.value++;
+    count.value = 2;
     expect(scheduler).toHaveBeenCalledTimes(1);
     expect(doubleCount).toBe(2);
     run();
