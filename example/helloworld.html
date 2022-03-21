@@ -1,21 +1,41 @@
-<div id="app">
-  <input id="input" type="text" />
-  <button id="btn">add</button>
-</div>
+<style>
+  .red {
+    color: red;
+  }
+</style>
+
+<div id="app"></div>
 
 <script type="module">
-  import { reactive, effect } from "../lib/mini-vue.esm.js";
+  import { reactive, effect, createApp, h } from "../lib/mini-vue.esm.js";
 
-  const count = reactive({
-    value: 0,
-  });
+  // const count = reactive({
+  //   value: 0,
+  // });
 
-  effect(() => {
-    input.value = count.value;
-    console.log(count.value);
-  });
+  // effect(() => {
+  //   input.value = count.value;
+  //   console.log(count.value);
+  // });
 
-  btn.onclick = function onAdd() {
-    count.value++;
+  // btn.onclick = function onAdd() {
+  //   count.value++;
+  // };
+
+  const App = {
+    render() {
+      return h("div", { class: "root" }, [
+        h("div", { class: "red" }, "Hi, mini-vue!"),
+        h("div", {}, "This is mini-vue!"),
+      ]);
+    },
+    setup() {
+      return {
+        message: "mini-vue",
+      };
+    },
   };
+
+  const app = document.getElementById("app");
+  createApp(App).mount(app);
 </script>

@@ -1,4 +1,4 @@
-import { hasChange, isObject } from "../../shared/index";
+import { hasChange, isObjectOrArray } from "../../shared/index";
 import { createDep } from "./dep";
 import {
   isTracking,
@@ -11,7 +11,7 @@ import { reactive } from "./reactive";
 class RefImpl<T = any> {
   private _value: T;
   private _rawValue: T;
-  private dep: Set<ReactiveEffect>;
+  private dep: Set<ReactiveEffect | null>;
 
   public __v_isRef = true;
 
@@ -38,7 +38,7 @@ class RefImpl<T = any> {
 }
 
 function convert(value) {
-  return isObject(value) ? reactive(value) : value;
+  return isObjectOrArray(value) ? reactive(value) : value;
 }
 
 export function ref<T = any>(value): RefImpl<T> {

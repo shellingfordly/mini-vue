@@ -1,4 +1,4 @@
-import { isObject } from "../../shared/index";
+import { isObjectOrArray } from "../../shared/index";
 import { track, trigger } from "./effect";
 import { reactive, ReactiveFlags, readonly } from "./reactive";
 
@@ -26,7 +26,7 @@ function createGetter(isReadonly = false, shallow = false) {
       return res;
     }
 
-    if (isObject(res)) {
+    if (isObjectOrArray(res)) {
       return isReadonly ? readonly(res) : reactive(res);
     }
     return res;
