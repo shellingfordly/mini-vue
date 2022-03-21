@@ -1,6 +1,23 @@
 {
   "compilerOptions": {
+    "strict": true, // 开启所有严格的类型检查
+    // 模块解析策略，ts默认用node的解析策略，即相对的方式导入
+    "moduleResolution": "node",
     "target": "es2016",
-    "esModuleInterop": true
-  }
+    "module": "esnext",
+    "esModuleInterop": true,
+    "noImplicitAny": false, // 不允许隐式的 any 类型
+    "removeComments": true, // 删除注释
+    // 保留 const 和 enum 声明
+    "preserveConstEnums": true,
+    // 生成目标文件的sourceMap文件
+    "sourceMap": true,
+    // 降级遍历器实现，如果目标源是es3/5，那么遍历器会有降级的实现
+    "downlevelIteration": true,
+    // TS需要引用的库，即声明文件，es5 默认引用dom、es5、scripthost,
+    // 如需要使用es的高级版本特性，通常都需要配置，
+    // 如es8的数组新特性需要引入"ES2019.Array",
+    // "lib": ["es6", "DOM"]
+  },
+  "include": ["src/index.ts", "src/global.d.ts"]
 }

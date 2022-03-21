@@ -1,0 +1,21 @@
+<div id="app">
+  <input id="input" type="text" />
+  <button id="btn">add</button>
+</div>
+
+<script type="module">
+  import { reactive, effect } from "../lib/mini-vue.esm.js";
+
+  const count = reactive({
+    value: 0,
+  });
+
+  effect(() => {
+    input.value = count.value;
+    console.log(count.value);
+  });
+
+  btn.onclick = function onAdd() {
+    count.value++;
+  };
+</script>

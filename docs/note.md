@@ -51,3 +51,17 @@ effect(() => {
   count.value;
 });
 ```
+
+### 导入报错
+
+tsconfig 需要配置 moduleResolution 属性为 node，否则导入文件时需要写出 index，而不能自动需要 index 文件
+
+![moduleResolution](./imgs/moduleResolution.png)
+
+```json
+{
+  "compilerOptions": {
+    "moduleResolution": "node"
+  }
+}
+```
