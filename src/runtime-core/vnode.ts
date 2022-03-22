@@ -12,6 +12,7 @@ export function createVNode(type, props?, children?) {
     type, // vue 组件对象
     props,
     children,
+    el: null,
   };
 
   return vnode;
@@ -19,9 +20,9 @@ export function createVNode(type, props?, children?) {
 
 /**
  * @description 创建一个虚拟节点对象
- * @param type 
- * @param props 
- * @param children 
+ * @param type
+ * @param props
+ * @param children
  * @returns vnode 虚拟节点
  */
 export function h(type, props?, children?) {

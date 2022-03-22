@@ -39,14 +39,16 @@ function processElement(vnode, container) {
 
 /**
  * @description element 类型元素 初始化函数
- * @param vnode 
- * @param container 
+ * @param vnode
+ * @param container
  */
 function mountElement(vnode, container) {
   // 根据 虚拟节点 属性 创建 element （真实dom）
   const { type, props, children } = vnode;
 
   const el = document.createElement(type);
+
+  vnode.el = el;
 
   // 处理 子节点 （虚拟节点）
   mountChildren(children, el);
@@ -63,8 +65,8 @@ function mountElement(vnode, container) {
 /**
  * @description 处理 element 子节点
  *    遍历 children ，调用 patch 生成真实 dom元素
- * @param children 
- * @param parent 
+ * @param children
+ * @param parent
  */
 function mountChildren(children, parent) {
   if (isString(children)) {
@@ -76,11 +78,11 @@ function mountChildren(children, parent) {
   }
 }
 
-// 
+//
 /**
  * @description 处理 vue组件 类型元素
- * @param vnode 
- * @param container 
+ * @param vnode
+ * @param container
  */
 function processComponent(vnode, container) {
   // 调用组件挂载函数
@@ -93,29 +95,33 @@ function processComponent(vnode, container) {
  *    初始化组件
  *    处理 render 渲染函数
  *    mountComponent 最终的归宿还是到了 mountElement 内，将虚拟节点转换成 真实dom
- * @param vnode 
- * @param container 
+ * @param vnode
+ * @param container
  */
-function mountComponent(vnode, container) {
+function mountComponent(initialVNode, container) {
   // 创建 组件 实例
-  const instance = createComponentInstance(vnode);
+  const instance = createComponentInstance(initialVNode);
 
   // 初始化组件： 初始化 props、slots等等， 挂载 component 到组件实例上
   setupComponent(instance);
   // 渲染 render 返回值（虚拟节点）
-  setupRnderEffect(instance, container);
+  setupRnderEffect(instance, initialVNode, container);
 }
 
 /**
  * @description 渲染 render 返回值
  *    调用 patch 函数，将 render 返回的虚拟节点转换成 真实dom
- * @param instance 
- * @param container 
+ * @param instance
+ * @param container
  */
-function setupRnderEffect(instance, container) {
+function setupRnderEffect(instance, initialVNode, container) {
   // 执行 组件实例 上的 render 函数，拿到 虚拟节点树
   const subTree = instance.render();
 
   // 调用 patch 处理 节点树
   patch(subTree, container);
+
+  // 在 patch 中真实生成了 真实dom 后，挂载到 vnode 上
+
+  initialVNode.el = subTree.el;
 }

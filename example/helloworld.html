@@ -22,16 +22,23 @@
   //   count.value++;
   // };
 
+  window.self = null;
+
+  setTimeout(() => {
+    console.log(window.self.$el);
+  }, 100);
+
   const App = {
     render() {
+      window.self = this;
       return h("div", { class: "root" }, [
-        h("div", { class: "red" }, "Hi, mini-vue!"),
-        h("div", {}, "This is mini-vue!"),
+        h("div", { class: "red" }, `Hi, ${this.message}!`),
+        h("div", {}, `This is ${this.message}!`),
       ]);
     },
     setup() {
       return {
-        message: "mini-vue",
+        message: "vue",
       };
     },
   };
