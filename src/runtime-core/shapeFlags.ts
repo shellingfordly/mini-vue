@@ -1,9 +1,9 @@
 export enum ShapeFlag {
   NUll = 0,
   ELEMENT = 1,
-  STATEFUL_COMPONENT = 1 << 1,
-  TEXT_CHILDREN = 1 << 2,
-  ARRAY_CHILDREN = 1 << 3,
+  STATEFUL_COMPONENT = 2, // 0010
+  TEXT_CHILDREN = 4, // 0100
+  ARRAY_CHILDREN = 8, // 1000
 }
 
 /**

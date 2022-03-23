@@ -59,12 +59,19 @@ function mountElement(vnode, container) {
   // 处理 子节点 （虚拟节点）
   mountChildren(vnode, el);
 
+  // 处理节点属性props
   if (props) {
     for (const key in props) {
-      el.setAttribute(key, props[key]);
+      const value = props[key];
+      if (isOnEvent(key)) {
+        const event = key.slice(2).toLowerCase();
+        el.addEventListener(event, props[key]);
+      } else {
+        el.setAttribute(key, value);
+      }
     }
   }
-
+  // 添加到容器中
   container.append(el);
 }
 
@@ -132,4 +139,13 @@ function setupRnderEffect(instance, initialVNode, container) {
   // 在 patch 中真实生成了 真实dom 后，挂载到 vnode 上
 
   initialVNode.el = subTree.el;
+}
+
+/**
+ * @description 判断是否为 事件 key
+ * @param key string
+ * @returns
+ */
+function isOnEvent(key): boolean {
+  return /^on[A-Z]/.test(key);
 }

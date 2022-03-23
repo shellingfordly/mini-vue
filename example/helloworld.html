@@ -31,8 +31,19 @@
   const App = {
     render() {
       window.self = this;
+      const self = this;
+
       return h("div", { class: "root" }, [
-        h("div", { class: "red" }, `Hi, ${this.message}!`),
+        h(
+          "div",
+          {
+            class: "red",
+            onClick() {
+              console.log(this, `Hi, ${self.message}!`);
+            },
+          },
+          `Hi, ${this.message}!`
+        ),
         h("div", {}, `This is ${this.message}!`),
       ]);
     },
