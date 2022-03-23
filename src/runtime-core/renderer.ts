@@ -1,5 +1,10 @@
-import { isArray, isObject, isString } from "../shared";
 import { createComponentInstance, setupComponent } from "./component";
+import {
+  isArrayChildren,
+  isCompoent,
+  isElement,
+  isTextChildren,
+} from "./shapeFlags";
 
 export function render(vnode, container) {
   // 调用 patch 函数递归处理组件
@@ -12,11 +17,12 @@ function patch(vnode, container) {
   // 1. element
   // 2. vue compoennt
 
-  const { type } = vnode;
-  if (isString(type)) {
+  const { shapeFlag } = vnode;
+
+  if (isElement(shapeFlag)) {
     // 处理 element 类型元素
     processElement(vnode, container);
-  } else if (isObject(type)) {
+  } else if (isCompoent(shapeFlag)) {
     // 处理 vue组件 类型元素
     processComponent(vnode, container);
   }
@@ -51,7 +57,7 @@ function mountElement(vnode, container) {
   vnode.el = el;
 
   // 处理 子节点 （虚拟节点）
-  mountChildren(children, el);
+  mountChildren(vnode, el);
 
   if (props) {
     for (const key in props) {
@@ -64,16 +70,18 @@ function mountElement(vnode, container) {
 
 /**
  * @description 处理 element 子节点
- *    遍历 children ，调用 patch 生成真实 dom元素
- * @param children
- * @param parent
+ *    遍历 vnode.children ，调用 patch 生成真实 dom元素
+ * @param vnode
+ * @param container 子节点容器，既父节点 vnode
  */
-function mountChildren(children, parent) {
-  if (isString(children)) {
-    parent.textContent = children;
-  } else if (isArray(children)) {
+function mountChildren(vnode, container) {
+  const { shapeFlag, children } = vnode;
+
+  if (isTextChildren(shapeFlag)) {
+    container.textContent = children;
+  } else if (isArrayChildren(shapeFlag)) {
     children.forEach((child) => {
-      patch(child, parent);
+      patch(child, container);
     });
   }
 }

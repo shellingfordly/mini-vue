@@ -8,10 +8,12 @@ export default {
     {
       format: "cjs",
       file: "lib/mini-vue.cjs.js",
+      sourcemap: true,
     },
     {
       format: "es",
       file: "lib/mini-vue.esm.js",
+      sourcemap: true,
     },
   ],
   plugins: [typescript()],
