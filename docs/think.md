@@ -108,3 +108,121 @@ export function triggerEffects(dep: Set<ReactiveEffect>) {
   }
 }
 ```
+
+### slots
+
+1. slots 只有在 `vue component` 有效，因此 `initProps` 应该在 setupComponent 中执行
+
+```ts
+// component.ts
+export function setupComponent(instance) {
+  initSlots(instance, instance.vnode.children);
+}
+```
+
+2. 在 initProps 时，将 instance.vnode.children 赋值给 instance.slots
+
+- 优化： 在 createVNode 时去判断 vnode 是否是 vue componet 以及 children 是否是 object；如果满足，则打上 `SLOT_CHILDREN` 的标记；在初始化时就可以判断此 vnode 是否需要 初始化 slots
+- 具名插槽： 传入的 chilren 对象，并给 instance.slots 赋值对应的属性
+- 作用域插槽： 将 `slots[key]` 对应的插槽赋值为一个函数，去调用 chilren 对应插入的函数并传入 props。 `slots[key]` 返回的是一个数组
+
+```ts
+// compoentSlots.ts
+export function initSlots(instance, children) {
+  if (instance.vnode.shapeFlag & ShapeFlag.SLOT_CHILDREN) {
+    normalizeObjectSlots(children, instance.slots);
+  }
+}
+
+function normalizeObjectSlots(children, slots) {
+  for (const key in children) {
+    const value = children[key];
+    slots[key] = (props) => normalizeSlotValue(value(props));
+  }
+}
+
+export function normalizeSlotValue(slot) {
+  return isArray(slot) ? slot : [slot];
+}
+```
+
+3. 调用 renderSlots 获取 slot
+
+- App 中使用插槽时 chilren 为 object，这是为了实现具名插槽
+- App 中插入的 节点 由函数返回，这是为了实现作用域插槽，initSlots 时拿到的 children 内的 slot 函数调用并传入 props
+- Foo 中插槽调用 renderSlots 将组件实例上挂载的 $slots 转换为虚拟节点
+
+```ts
+// index.html
+const Foo = {
+  render() {
+    return h("div", {}, [
+      renderSlots(this.$slots, "header", { data: "header" }),
+      renderSlots(this.$slots, "footer", { data: "footer" }),
+    ]);
+  },
+};
+
+const App = {
+  render() {
+    return h(
+      Foo,
+      {},
+      {
+        header: ({ data }) => h("div", {}, "I am Foo " + data),
+        footer: ({ data }) => h("div", {}, "I am Foo " + data),
+      }
+    );
+  },
+};
+```
+
+1. renderSlots 中调用 createVNode 创建虚拟节点
+
+- slots 为组件实例上挂载的 $slots，包含了所有插入的返回节点的函数
+- 获取对应的 slot 调用并传入 props，此 props 为 Foo 组件中传入的数据
+- 获取到的 slot 时在 initSlots 时，设置为函数的
+
+```ts
+// renderSlots.ts
+export function renderSlots(slots, name, props?) {
+  const slot = slots[name];
+
+  if (slot) {
+    if (isFunction(slot)) {
+      return createVNode("div", {}, slot(props));
+    }
+  }
+}
+```
+
+#### 思考
+
+1. 其实如果在 initSlots 中 `slots[key]` 赋值为 slot 数组，在 renderSlots 中遍历调用也不会报错，但为什么要这样返回函数呢
+
+- 首先，返回函数的写法看上去确实好看一些
+- 暂时还没有想到，也许看到后面，或者看 vue3 源码时能发现这样会有一些优点
+
+```ts
+function normalizeObjectSlots(children, slots) {
+  for (const key in children) {
+    const value = children[key];
+    slots[key] = normalizeSlotValue(value); // value 为 函数
+  }
+}
+
+export function renderSlots(slots, name, props?) {
+  const slot = slots[name];
+
+  // slot 是一个 函数数组
+  if (slot) {
+    if (isFunction(slot)) {
+      return createVNode(
+        "div",
+        {},
+        slot.map((v) => v(props))
+      );
+    }
+  }
+}
+```

@@ -50,7 +50,7 @@ function processElement(vnode, container) {
  */
 function mountElement(vnode, container) {
   // 根据 虚拟节点 属性 创建 element （真实dom）
-  const { type, props, children } = vnode;
+  const { type, props } = vnode;
 
   const el = document.createElement(type);
 

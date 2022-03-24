@@ -7,7 +7,13 @@
 <div id="app"></div>
 
 <script type="module">
-  import { reactive, effect, createApp, h } from "../lib/mini-vue.esm.js";
+  import {
+    reactive,
+    effect,
+    createApp,
+    h,
+    renderSlots,
+  } from "../lib/mini-vue.esm.js";
 
   // const count = reactive({
   //   value: 0,
@@ -36,7 +42,10 @@
       return { onClick };
     },
     render() {
+      console.log(this.$slots);
+
       return h("div", {}, [
+        renderSlots(this.$slots, "header", { data: "header" }),
         h("div", {}, "I am Foo."),
         h(
           "button",
@@ -45,6 +54,7 @@
           },
           "add"
         ),
+        renderSlots(this.$slots, "footer", { data: "footer" }),
       ]);
     },
   };
@@ -65,15 +75,22 @@
           `Hi, ${this.message}!`
         ),
         h("div", {}, `This is ${this.message}!`),
-        h(Foo, {
-          count: 1,
-          onAdd(...args) {
-            console.log(...args);
+        h(
+          Foo,
+          {
+            count: 1,
+            onAdd(...args) {
+              console.log(...args);
+            },
+            onAddFoo(...args) {
+              console.log(...args);
+            },
           },
-          onAddFoo(...args) {
-            console.log(...args);
-          },
-        }),
+          {
+            header: ({ data }) => h("div", {}, "I am Foo " + data),
+            footer: ({ data }) => h("div", {}, "I am Foo " + data),
+          }
+        ),
       ]);
     },
     setup() {
@@ -86,3 +103,13 @@
   const app = document.getElementById("app");
   createApp(App).mount(app);
 </script>
+
+<Foo>
+  <template #sss="data">
+    <div>{data}</div>
+  </template>
+</Foo>
+
+<div>
+  <slot :data="data" name="sss"> </slot>
+</div>

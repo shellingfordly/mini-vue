@@ -57,5 +57,11 @@ function getShapeFlag(type, children): ShapeFlag {
     shapeFlag |= ShapeFlag.ARRAY_CHILDREN;
   }
 
+  if (shapeFlag & ShapeFlag.STATEFUL_COMPONENT) {
+    if (isObject(children)) {
+      shapeFlag |= ShapeFlag.SLOT_CHILDREN;
+    }
+  }
+
   return shapeFlag;
 }
