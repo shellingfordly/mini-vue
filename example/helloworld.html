@@ -13,6 +13,9 @@
     createApp,
     h,
     renderSlots,
+    Fragment,
+    Text,
+    createTextVNode,
   } from "../lib/mini-vue.esm.js";
 
   // const count = reactive({
@@ -44,7 +47,7 @@
     render() {
       console.log(this.$slots);
 
-      return h("div", {}, [
+      return h(Fragment, {}, [
         renderSlots(this.$slots, "header", { data: "header" }),
         h("div", {}, "I am Foo."),
         h(
@@ -55,6 +58,7 @@
           "add"
         ),
         renderSlots(this.$slots, "footer", { data: "footer" }),
+        createTextVNode("this is a text node"),
       ]);
     },
   };

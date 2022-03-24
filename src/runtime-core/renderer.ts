@@ -5,6 +5,7 @@ import {
   isElement,
   isTextChildren,
 } from "./shapeFlags";
+import { Fragment, Text } from "./vnode";
 
 export function render(vnode, container) {
   // 调用 patch 函数递归处理组件
@@ -17,15 +18,44 @@ function patch(vnode, container) {
   // 1. element
   // 2. vue compoennt
 
-  const { shapeFlag } = vnode;
+  const { shapeFlag, type, children } = vnode;
 
-  if (isElement(shapeFlag)) {
-    // 处理 element 类型元素
-    processElement(vnode, container);
-  } else if (isCompoent(shapeFlag)) {
-    // 处理 vue组件 类型元素
-    processComponent(vnode, container);
+  switch (type) {
+    case Fragment:
+      processFragment(vnode, container);
+      break;
+    case Text:
+      proceeText(vnode, container);
+      break;
+    default:
+      if (isElement(shapeFlag)) {
+        // 处理 element 类型元素
+        processElement(vnode, container);
+      } else if (isCompoent(shapeFlag)) {
+        // 处理 vue组件 类型元素
+        processComponent(vnode, container);
+      }
+      break;
   }
+}
+
+/**
+ * @description 处理 Fragment 节点
+ * @param vnode
+ * @param container
+ */
+function processFragment(vnode, container) {
+  mountChildren(vnode, container);
+}
+
+/**
+ * @description 处理文本节点
+ * @param vnode
+ * @param container
+ */
+function proceeText(vnode, container) {
+  const textNode = (vnode.el = document.createTextNode(vnode.children));
+  container.append(textNode);
 }
 
 /**
@@ -57,7 +87,13 @@ function mountElement(vnode, container) {
   vnode.el = el;
 
   // 处理 子节点 （虚拟节点）
-  mountChildren(vnode, el);
+  const { shapeFlag, children } = vnode;
+
+  if (isTextChildren(shapeFlag)) {
+    el.textContent = children;
+  } else if (isArrayChildren(shapeFlag)) {
+    mountChildren(vnode, el);
+  }
 
   // 处理节点属性props
   if (props) {
@@ -82,15 +118,9 @@ function mountElement(vnode, container) {
  * @param container 子节点容器，既父节点 vnode
  */
 function mountChildren(vnode, container) {
-  const { shapeFlag, children } = vnode;
-
-  if (isTextChildren(shapeFlag)) {
-    container.textContent = children;
-  } else if (isArrayChildren(shapeFlag)) {
-    children.forEach((child) => {
-      patch(child, container);
-    });
-  }
+  vnode.children.forEach((child) => {
+    patch(child, container);
+  });
 }
 
 //
