@@ -1,0 +1,115 @@
+<style>
+  .red {
+    color: red;
+  }
+</style>
+
+<div id="app"></div>
+
+<script type="module">
+  import {
+    reactive,
+    effect,
+    createApp,
+    h,
+    renderSlots,
+  } from "../lib/mini-vue.esm.js";
+
+  // const count = reactive({
+  //   value: 0,
+  // });
+
+  // effect(() => {
+  //   input.value = count.value;
+  //   console.log(count.value);
+  // });
+
+  // btn.onclick = function onAdd() {
+  //   count.value++;
+  // };
+
+  const Foo = {
+    name: "Foo",
+    setup(props, { emit }) {
+      console.log("Foo props ", props);
+      // props.count++
+
+      function onClick() {
+        emit("add", "add");
+        emit("add-foo", "add-foo");
+      }
+
+      return { onClick };
+    },
+    render() {
+      console.log(this.$slots);
+
+      return h("div", {}, [
+        renderSlots(this.$slots, "header", { data: "header" }),
+        h("div", {}, "I am Foo."),
+        h(
+          "button",
+          {
+            onClick: this.onClick,
+          },
+          "add"
+        ),
+        renderSlots(this.$slots, "footer", { data: "footer" }),
+      ]);
+    },
+  };
+
+  const App = {
+    render() {
+      const self = this;
+
+      return h("div", { class: "root" }, [
+        h(
+          "div",
+          {
+            class: "red",
+            onClick() {
+              console.log(this, `Hi, ${self.message}!`);
+            },
+          },
+          `Hi, ${this.message}!`
+        ),
+        h("div", {}, `This is ${this.message}!`),
+        h(
+          Foo,
+          {
+            count: 1,
+            onAdd(...args) {
+              console.log(...args);
+            },
+            onAddFoo(...args) {
+              console.log(...args);
+            },
+          },
+          {
+            header: ({ data }) => h("div", {}, "I am Foo " + data),
+            footer: ({ data }) => h("div", {}, "I am Foo " + data),
+          }
+        ),
+      ]);
+    },
+    setup() {
+      return {
+        message: "vue",
+      };
+    },
+  };
+
+  const app = document.getElementById("app");
+  createApp(App).mount(app);
+</script>
+
+<Foo>
+  <template #sss="data">
+    <div>{data}</div>
+  </template>
+</Foo>
+
+<div>
+  <slot :data="data" name="sss"> </slot>
+</div>
