@@ -19,3 +19,30 @@ export const isArray = (val) => is(val, Type.Array);
 export const isString = (val) => is(val, Type.String);
 
 export const hasChange = (obj, newObj) => !Object.is(obj, newObj);
+
+/**
+ * @description 短横线命名法 转 驼峰命名法
+ * @param str 
+ * @returns 
+ */
+export const cameline = (str: string) => {
+  return str.replace(/-(\w)/g, (_, c: string) => c.toUpperCase());
+};
+
+/**
+ * @description 首字母大写
+ * @param str 
+ * @returns 
+ */
+export const capitalize = (str: string) => {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+};
+
+/**
+ * @description 处理 on 事件名
+ * @param str 
+ * @returns 
+ */
+export const toHandlerKey = (str: string) => {
+  return `on${capitalize(str)}`;
+};

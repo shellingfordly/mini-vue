@@ -24,13 +24,28 @@
 
   const Foo = {
     name: "Foo",
-    setup(props) {
+    setup(props, { emit }) {
       console.log("Foo props ", props);
       // props.count++
-      return {};
+
+      function onClick() {
+        emit("add", "add");
+        emit("add-foo", "add-foo");
+      }
+
+      return { onClick };
     },
     render() {
-      return h("div", {}, "I am Foo." + this.count);
+      return h("div", {}, [
+        h("div", {}, "I am Foo."),
+        h(
+          "button",
+          {
+            onClick: this.onClick,
+          },
+          "add"
+        ),
+      ]);
     },
   };
 
@@ -50,7 +65,15 @@
           `Hi, ${this.message}!`
         ),
         h("div", {}, `This is ${this.message}!`),
-        h(Foo, { count: 1 }),
+        h(Foo, {
+          count: 1,
+          onAdd(...args) {
+            console.log(...args);
+          },
+          onAddFoo(...args) {
+            console.log(...args);
+          },
+        }),
       ]);
     },
     setup() {
