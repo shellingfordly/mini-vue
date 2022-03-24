@@ -51,3 +51,15 @@ export function triggerEffects(dep) {
 ```
 
 2.1. effect.scheduler 是做什么的，暂时没看到后面，先留个疑问
+
+
+3. 读取reactive变量会触发track，track内部会对effect进行收集，dep收集effect是为了trigger时去执行effect.run函数，为什么activeEffect也要去收集deps？是为了什么优化吗？或者是后面的某个模块会用到？
+
+```ts
+function trackEffects(dep) {
+  if (!dep.has(activeEffect)) {
+    dep.add(activeEffect);
+    activeEffect.deps.push(dep);
+  }
+}
+```

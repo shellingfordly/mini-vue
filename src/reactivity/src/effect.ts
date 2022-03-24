@@ -12,6 +12,13 @@ class ReactiveEffect {
   constructor(public fn, public scheduler) {}
 
   run() {
+    // 当执行过 stop 之后，清除掉了 effect，就不需要做 activeEffect 赋值操作
+    // 当外部执行 effect 返回 runner 时，直接调用 fn 即可
+    // active：effect 状态，失活时不再自动触发，需要用户手动触发 runner
+    if (!this.active) {
+      return this.fn();
+    }
+
     activeEffect = this;
     shouldTrack = true;
 
@@ -32,11 +39,13 @@ class ReactiveEffect {
   }
 }
 
+// 清楚dep收集的effect
 function cleanupEffect(effect) {
   effect.deps.forEach((dep) => {
     dep.delete(effect);
   });
 
+  // dep 收集的 effect 清空后，对应 effect 绑定的 deps 已经没有意义了，也可以清空了
   effect.deps.length = 0;
 }
 

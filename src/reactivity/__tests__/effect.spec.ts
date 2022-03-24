@@ -67,12 +67,18 @@ describe("effect", () => {
     });
 
     count.value = 2;
+    expect(count.value).toBe(2);
     expect(doubleCount).toBe(4);
     stop(runner);
 
-    count.value = 3;
+    // count.value++ 实际上是 count.value = count.value + 1
+    // 会触发 count get 函数，收集依赖(effect)
+    count.value++;
 
+    expect(count.value).toBe(3);
     expect(doubleCount).toBe(4);
+
+    // 重新触发 effect.run
     runner();
     expect(doubleCount).toBe(6);
   });
