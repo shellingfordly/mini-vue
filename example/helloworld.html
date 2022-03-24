@@ -22,15 +22,20 @@
   //   count.value++;
   // };
 
-  window.self = null;
-
-  setTimeout(() => {
-    window.self && console.log(window.self.$el);
-  }, 100);
+  const Foo = {
+    name: "Foo",
+    setup(props) {
+      console.log("Foo props ", props);
+      // props.count++
+      return {};
+    },
+    render() {
+      return h("div", {}, "I am Foo." + this.count);
+    },
+  };
 
   const App = {
     render() {
-      window.self = this;
       const self = this;
 
       return h("div", { class: "root" }, [
@@ -45,6 +50,7 @@
           `Hi, ${this.message}!`
         ),
         h("div", {}, `This is ${this.message}!`),
+        h(Foo, { count: 1 }),
       ]);
     },
     setup() {
