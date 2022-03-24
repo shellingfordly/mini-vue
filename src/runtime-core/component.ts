@@ -47,9 +47,11 @@ function setupStatefulComponent(instance) {
 
   // 获取 setup 返回值
   if (setup) {
+    setCurrentInstance(instance);
     const setupResult = setup(shallowReadonly(instance.props), {
       emit: instance.emit,
     });
+    setCurrentInstance(null);
 
     handleSetupResult(instance, setupResult);
   }
@@ -76,4 +78,26 @@ function finishComponentSetup(instance) {
   if (Component.render) {
     instance.render = Component.render.bind(proxy);
   }
+}
+
+let currentInstance = null;
+
+/**
+ * @description 获取当前组件实例
+ *    该方法只允许在setup内部调用，因此在调用setup时去给 currentInstance 赋值，结束后清空
+ * @returns
+ */
+export function getCurrentInstance() {
+  return currentInstance;
+}
+
+/**
+ * @description 设置组件实例对象
+ *     currentInstance = instance 这样一句简单的赋值 抽取为函数的好处
+ *     方便调试错误，当对 currentInstance 错误赋值时，只需在此处 断点 就可以查询到调用过设置位置
+ *     如果直接写 currentInstance = instance 的话，查错时很难知道在代码的哪一块设置的
+ * @param instance
+ */
+function setCurrentInstance(instance) {
+  currentInstance = instance;
 }

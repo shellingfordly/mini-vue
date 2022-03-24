@@ -52,8 +52,7 @@ export function triggerEffects(dep) {
 
 2.1. effect.scheduler 是做什么的，暂时没看到后面，先留个疑问
 
-
-3. 读取reactive变量会触发track，track内部会对effect进行收集，dep收集effect是为了trigger时去执行effect.run函数，为什么activeEffect也要去收集deps？是为了什么优化吗？或者是后面的某个模块会用到？
+3. 读取 reactive 变量会触发 track，track 内部会对 effect 进行收集，dep 收集 effect 是为了 trigger 时去执行 effect.run 函数，为什么 activeEffect 也要去收集 deps？是为了什么优化吗？或者是后面的某个模块会用到？
 
 ```ts
 function trackEffects(dep) {
@@ -63,6 +62,7 @@ function trackEffects(dep) {
   }
 }
 ```
+
 ### ref
 
 1. proxyRefs 在设置 proxyRefInfo.age 的时候，设置的 value 按道理是一个普通数字，再做 isRef 判断的时候缺触发了 reactive 的 get 函数，为什么
@@ -235,5 +235,23 @@ export function renderSlots(slots, name, props?) {
       );
     }
   }
+}
+```
+
+### getCurrentInstance
+
+> 获取组件实例对象
+
+1. 为什么要将一句简单的 `currentInstance = instance` 封装到 `setCurrentInstance` 函数中
+
+方便调试错误，当对 currentInstance 被某处代码错误赋值时，只需在 setCurrentInstance 中打断点，就可以查询到调用过位置；如果直接写 currentInstance = instance 的话，查错时很难知道在代码的哪一块设置的。
+
+```ts
+export function getCurrentInstance() {
+  return currentInstance;
+}
+
+function setCurrentInstance(instance) {
+  currentInstance = instance;
 }
 ```

@@ -16,6 +16,7 @@
     Fragment,
     Text,
     createTextVNode,
+    getCurrentInstance,
   } from "../lib/mini-vue.esm.js";
 
   // const count = reactive({
@@ -36,6 +37,8 @@
     setup(props, { emit }) {
       console.log("Foo props ", props);
       // props.count++
+
+      console.log(getCurrentInstance());
 
       function onClick() {
         emit("add", "add");

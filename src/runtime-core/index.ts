@@ -1,3 +1,5 @@
+export { getCurrentInstance } from "./component";
+
 export { createApp } from "./createApp";
 
 export { h, Fragment, Text, createTextVNode } from "./vnode";
