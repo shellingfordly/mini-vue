@@ -8,7 +8,7 @@ export function createApp(rootComponent) {
       const vnode = createVNode(rootComponent);
 
       // 调用渲染函数
-      render(vnode, rootContainer);
+      render(vnode, rootContainer, null);
     },
   };
 }

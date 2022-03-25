@@ -7,22 +7,22 @@ import {
 } from "./shapeFlags";
 import { Fragment, Text } from "./vnode";
 
-export function render(vnode, container) {
+export function render(vnode, container, parentInstance) {
   // 调用 patch 函数递归处理组件
-  patch(vnode, container);
+  patch(vnode, container, parentInstance);
 }
 
 // 处理 元素 的函数 （vue组件元素 / element dom元素）
-function patch(vnode, container) {
+function patch(vnode, container, parentInstance) {
   // 处理不同类型的 vnode 元素
   // 1. element
   // 2. vue compoennt
 
-  const { shapeFlag, type, children } = vnode;
+  const { shapeFlag, type } = vnode;
 
   switch (type) {
     case Fragment:
-      processFragment(vnode, container);
+      processFragment(vnode, container, parentInstance);
       break;
     case Text:
       proceeText(vnode, container);
@@ -30,10 +30,10 @@ function patch(vnode, container) {
     default:
       if (isElement(shapeFlag)) {
         // 处理 element 类型元素
-        processElement(vnode, container);
+        processElement(vnode, container, parentInstance);
       } else if (isCompoent(shapeFlag)) {
         // 处理 vue组件 类型元素
-        processComponent(vnode, container);
+        processComponent(vnode, container, parentInstance);
       }
       break;
   }
@@ -44,8 +44,8 @@ function patch(vnode, container) {
  * @param vnode
  * @param container
  */
-function processFragment(vnode, container) {
-  mountChildren(vnode, container);
+function processFragment(vnode, container, parentInstance) {
+  mountChildren(vnode, container, parentInstance);
 }
 
 /**
@@ -66,9 +66,9 @@ function proceeText(vnode, container) {
  * @param vnode 虚拟节点
  * @param container 需要实际挂载的 容器 （真实dom元素）
  */
-function processElement(vnode, container) {
+function processElement(vnode, container, parentInstance) {
   // init 调用 elment 元素初始化函数
-  mountElement(vnode, container);
+  mountElement(vnode, container, parentInstance);
 
   // update
 }
@@ -78,7 +78,7 @@ function processElement(vnode, container) {
  * @param vnode
  * @param container
  */
-function mountElement(vnode, container) {
+function mountElement(vnode, container, parentInstance) {
   // 根据 虚拟节点 属性 创建 element （真实dom）
   const { type, props } = vnode;
 
@@ -92,7 +92,7 @@ function mountElement(vnode, container) {
   if (isTextChildren(shapeFlag)) {
     el.textContent = children;
   } else if (isArrayChildren(shapeFlag)) {
-    mountChildren(vnode, el);
+    mountChildren(vnode, el, parentInstance);
   }
 
   // 处理节点属性props
@@ -117,9 +117,9 @@ function mountElement(vnode, container) {
  * @param vnode
  * @param container 子节点容器，既父节点 vnode
  */
-function mountChildren(vnode, container) {
+function mountChildren(vnode, container, parentInstance) {
   vnode.children.forEach((child) => {
-    patch(child, container);
+    patch(child, container, parentInstance);
   });
 }
 
@@ -129,9 +129,9 @@ function mountChildren(vnode, container) {
  * @param vnode
  * @param container
  */
-function processComponent(vnode, container) {
+function processComponent(vnode, container, parentInstance) {
   // 调用组件挂载函数
-  mountComponent(vnode, container);
+  mountComponent(vnode, container, parentInstance);
 }
 
 /**
@@ -143,9 +143,9 @@ function processComponent(vnode, container) {
  * @param vnode
  * @param container
  */
-function mountComponent(initialVNode, container) {
+function mountComponent(initialVNode, container, parentInstance) {
   // 创建 组件 实例
-  const instance = createComponentInstance(initialVNode);
+  const instance = createComponentInstance(initialVNode, parentInstance);
 
   // 初始化组件： 初始化 props、slots等等， 挂载 component 到组件实例上
   setupComponent(instance);
@@ -157,6 +157,7 @@ function mountComponent(initialVNode, container) {
  * @description 渲染 render 返回值
  *    调用 patch 函数，将 render 返回的虚拟节点转换成 真实dom
  * @param instance
+ * @param initialVNode
  * @param container
  */
 function setupRnderEffect(instance, initialVNode, container) {
@@ -164,7 +165,7 @@ function setupRnderEffect(instance, initialVNode, container) {
   const subTree = instance.render();
 
   // 调用 patch 处理 节点树
-  patch(subTree, container);
+  patch(subTree, container, instance);
 
   // 在 patch 中真实生成了 真实dom 后，挂载到 vnode 上
 

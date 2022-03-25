@@ -17,6 +17,8 @@
     Text,
     createTextVNode,
     getCurrentInstance,
+    provide,
+    inject,
   } from "../lib/mini-vue.esm.js";
 
   // const count = reactive({
@@ -32,24 +34,40 @@
   //   count.value++;
   // };
 
+  const Bar = {
+    setup() {
+      console.log("getCurrentInstance Bar", getCurrentInstance());
+
+      const appData = inject("data");
+
+      console.log("Bar", appData);
+      return {
+        appData,
+      };
+    },
+    render() {
+      return h("div", {}, "Bar: " + this.appData);
+    },
+  };
+
   const Foo = {
     name: "Foo",
     setup(props, { emit }) {
-      console.log("Foo props ", props);
-      // props.count++
 
-      console.log(getCurrentInstance());
+      // provide("data", "FooData");
+      provide("data1", "FooData");
+
+      const appData = inject("data");
+      console.log("Foo", appData);
 
       function onClick() {
         emit("add", "add");
         emit("add-foo", "add-foo");
       }
 
-      return { onClick };
+      return { onClick, appData };
     },
     render() {
-      console.log(this.$slots);
-
       return h(Fragment, {}, [
         renderSlots(this.$slots, "header", { data: "header" }),
         h("div", {}, "I am Foo."),
@@ -61,7 +79,8 @@
           "add"
         ),
         renderSlots(this.$slots, "footer", { data: "footer" }),
-        createTextVNode("this is a text node"),
+        createTextVNode("Foo: " + this.appData),
+        h(Bar, {}),
       ]);
     },
   };
@@ -101,6 +120,8 @@
       ]);
     },
     setup() {
+      provide("data", "AppData");
+
       return {
         message: "vue",
       };

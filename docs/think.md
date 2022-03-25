@@ -112,7 +112,7 @@ export function proxyRefs(objectWithRefs) {
 export function triggerEffects(dep: Set<ReactiveEffect>) {
   for (const effect of dep) {
     if (effect.scheduler) {
-      effect.scheduler();
+      effect.scheduler();****
     } else {
       effect.run();
     }
@@ -253,5 +253,58 @@ export function getCurrentInstance() {
 
 function setCurrentInstance(instance) {
   currentInstance = instance;
+}
+```
+
+### provide/inject
+
+> 跨多个组件传值
+
+首先，`provide/inject` 只能在 setup 中使用，因此 provide 内可以获取组件实例；调用 provide 时，将键和值设置到 instance 的 procides 属性上。调用 inject 时在从 `instance.parent.provides` (父组件实例的 provides) 上获取。
+
+1. 注意取值的时候是取父组件实例的 provides，而不是自己的，因为是跨组件取数据，要取自己的数据就没有必要调用这个接口
+
+2. 怎么获取祖先组件中的 provides？
+
+当跨多个层级时，直接从父组件实例中获取数据就获取不到了。
+
+第一点，直接将当前组件实例的 provides 设置为 parent.provides。这样会带来一个问题，所有的 provides 使用的都是根节点的那个对象，后面的组件再去设置的时候是直接在根节点的 provides 上增加属性，如果同名就会覆盖，导致中间组件拿到的数据变更。
+
+这时就可以利用对象`原型链`的特性，将 `父组件的 provides` 设置为当前组件 procides 的原型。这样获取数据的时候就只会找最近的父组件的 provides 上存在的值；如果父组件的 provides 上没有此属性时，才会继续向上寻找。就解决了无法获取祖先组件设置的数据，以及子组件覆盖父组件数据的情况。
+
+1. 存在一个问题，多次调用 provide
+
+如果每次调用 provide 都调用`Object.create`将父组件 provides 为原型创建的新对象赋值给当前 instance.provides，那么后面设置属性的对象就会覆盖前面的 provides；
+
+由于在创建 instance 时，provides 是直接使用 parent.instance，只需判断 instance.provides 是否等于 instance.parent.provides，就可以知道是否已经使用过 Object.create
+
+```ts
+export function createComponentInstance(vnode, parent) {
+  const instance = {
+    // ... 省略其他属性设置
+    provides: parent ? parent.provides : {},
+  };
+  return instance;
+}
+
+export function provide(key, value) {
+  const currentInstance: any = getCurrentInstance();
+
+  if (currentInstance) {
+    if (
+      currentInstance.parent &&
+      currentInstance.provides === currentInstance.parent.provides
+    ) {
+      currentInstance.provides = Object.create(currentInstance.parent.provides);
+    }
+    currentInstance.provides[key] = value;
+  }
+}
+
+export function inject(key) {
+  const currentInstance: any = getCurrentInstance();
+  if (currentInstance) {
+    return currentInstance.parent.provides[key];
+  }
 }
 ```
