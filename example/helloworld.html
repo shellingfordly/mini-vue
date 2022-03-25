@@ -54,8 +54,8 @@
     name: "Foo",
     setup(props, { emit }) {
 
-      // provide("data", "FooData");
-      provide("data1", "FooData");
+      provide("data", "FooData");
+      // provide("data1", "FooData");
 
       const appData = inject("data");
       console.log("Foo", appData);
