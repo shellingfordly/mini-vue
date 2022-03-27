@@ -1,0 +1,44 @@
+<style>
+  .red {
+    color: red;
+  }
+</style>
+
+<div id="app"></div>
+
+<script type="module">
+  import { ref, reactive, createApp, h } from "../lib/mini-vue.esm.js";
+
+  const App = {
+    setup() {
+      const count = ref(0);
+
+      console.log(count.value);
+
+      const onClick = () => {
+        count.value++;
+        console.log(count.value);
+      };
+
+      return {
+        count,
+        onClick,
+      };
+    },
+    render() {
+      return h("div", {}, [
+        h("div", {}, "count: " + this.count),
+        h(
+          "button",
+          {
+            onClick: this.onClick,
+          },
+          "click"
+        ),
+      ]);
+    },
+  };
+
+  const app = document.getElementById("app");
+  createApp(App).mount(app);
+</script>

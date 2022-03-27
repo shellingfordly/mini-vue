@@ -4,6 +4,7 @@ import { initProps } from "./componentProps";
 import { shallowReadonly } from "../reactivity/src/reactive";
 import { emit } from "./componentEmit";
 import { initSlots } from "./componentSlots";
+import { proxyRefs } from "../reactivity/src";
 
 // 创建
 export function createComponentInstance(vnode, parent) {
@@ -17,6 +18,8 @@ export function createComponentInstance(vnode, parent) {
     parent,
     emit: () => {},
     slots: {},
+    isMounted: false,
+    subTree: {},
   };
 
   instance.emit = emit.bind(null, instance) as any;
@@ -65,7 +68,7 @@ function handleSetupResult(instance, setupResult) {
   // 2. object 只是 template 中使用的数据对象
 
   if (isObject(setupResult)) {
-    instance.setupState = setupResult;
+    instance.setupState = proxyRefs(setupResult);
   }
 
   // 处理组件 render
