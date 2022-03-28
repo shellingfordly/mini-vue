@@ -308,3 +308,41 @@ export function inject(key) {
   }
 }
 ```
+
+### 更新 element 的 props
+
+1. 调用 patchElement 时为什么需要将 n1.el 赋值给 n2.el ，如果不赋值，再次更新获取了 el 将是 null。一直操作的都是一个 el 并没有改变不是吗，
+
+```ts
+function patchElement(n1, n2, container, parentInstance) {
+  const oldProps = n1.props || EMPTY_OBJ;
+  const newProps = n2.props || EMPTY_OBJ;
+
+  // 需要给 n2.el 赋值，否则后面拿不到el
+  const el = (n2.el = n1.el);
+
+  patchProps(el, oldProps, newProps);
+}
+```
+
+**解答：**
+
+因为在渲染函数里面更新时，调用了组件实例下的 render 函数创建了新的虚拟节点树 currentSubTree。
+
+当更新 element 时拿到的就是新的虚拟节点树上的节点（也就是 n2）；然后组件实例上保存的旧的 subTree 被更新为新的 currentSubTree。
+
+因此当再次发生更新时，又去生成了新的节点树，此时的老 subTree 时上一次更新生成的 currentSubTree，不是初始化那个节点树，因此 n2.el 是 null，所以需要在更新时将初始化的 n1.el 赋值给 n2.el，这样才能再下次更新时拿到初始化生成的 el
+
+确实一直都是一个 el，只是生成了新的虚拟节点树，去对比了对象。
+
+```ts
+function setupRnderEffect(instance, initialVNode, container) {
+  //更新
+  const { proxy } = instance;
+  const currentSubTree = instance.render.call(proxy);
+  const prevSubTree = instance.subTree;
+  instance.subTree = currentSubTree;
+
+  patch(prevSubTree, currentSubTree, container, instance);
+}
+```

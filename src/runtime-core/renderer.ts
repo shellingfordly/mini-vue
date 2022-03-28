@@ -84,15 +84,29 @@ export function createRenderer({
     }
   }
 
+  /**
+   * @description 更新 element
+   * @param n1 
+   * @param n2 
+   * @param container 
+   * @param parentInstance 
+   */
   function patchElement(n1, n2, container, parentInstance) {
     const oldProps = n1.props || EMPTY_OBJ;
     const newProps = n2.props || EMPTY_OBJ;
 
+    // 需要给 n2.el 赋值，否则后面拿不到el
     const el = (n2.el = n1.el);
 
     patchProps(el, oldProps, newProps);
   }
 
+  /**
+   * @description 更新 props
+   * @param el 
+   * @param oldProps 
+   * @param newProps 
+   */
   function patchProps(el, oldProps, newProps) {
     if (oldProps !== newProps) {
       for (const key in newProps) {
