@@ -1,15 +1,20 @@
 import { createRenderer } from "../runtime-core";
+import { isNullOrUndefined } from "../shared";
 
 export function createElement(type) {
   return document.createElement(type);
 }
 
-export function patchProps(el, key, value) {
+export function patchProp(el, key, preValue, nextValue) {
   if (isOnEvent(key)) {
     const event = key.slice(2).toLowerCase();
-    el.addEventListener(event, value);
+    el.addEventListener(event, nextValue);
   } else {
-    el.setAttribute(key, value);
+    if (isNullOrUndefined(nextValue)) {
+      el.removeAttribute(key);
+    } else {
+      el.setAttribute(key, nextValue);
+    }
   }
 }
 
@@ -28,7 +33,7 @@ function isOnEvent(key): boolean {
 
 const renderer: any = createRenderer({
   createElement,
-  patchProps,
+  patchProp,
   insert,
 });
 

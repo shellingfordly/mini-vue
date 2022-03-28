@@ -8,9 +8,13 @@ import {
 import { Fragment, Text } from "./vnode";
 import { createAppAPI } from "./createApp";
 import { effect } from "../reactivity/src";
-import { isString } from "../shared";
+import { EMPTY_OBJ, isString } from "../shared";
 
-export function createRenderer({ createElement, patchProps, insert }) {
+export function createRenderer({
+  createElement: hostCreateElement,
+  patchProp: hostPatchProp,
+  insert: hostInsert,
+}) {
   function render(vnode, container, parentInstance) {
     // 调用 patch 函数递归处理组件
     patch(null, vnode, container, parentInstance);
@@ -49,7 +53,7 @@ export function createRenderer({ createElement, patchProps, insert }) {
    * @param container
    */
   function processFragment(n1, n2, container, parentInstance) {
-    mountChildren(null, n2, container, parentInstance);
+    mountChildren(n2, container, parentInstance);
   }
 
   /**
@@ -81,14 +85,32 @@ export function createRenderer({ createElement, patchProps, insert }) {
   }
 
   function patchElement(n1, n2, container, parentInstance) {
-    console.log(n1, n2);
-    if (n1 && isString(n1.children)) {
-      if (n1.children !== n2.children) {
-        // n1.children = n2.children;
-        n1.el.textContent = n2.children;
+    const oldProps = n1.props || EMPTY_OBJ;
+    const newProps = n2.props || EMPTY_OBJ;
+
+    const el = (n2.el = n1.el);
+
+    patchProps(el, oldProps, newProps);
+  }
+
+  function patchProps(el, oldProps, newProps) {
+    if (oldProps !== newProps) {
+      for (const key in newProps) {
+        const oldProp = oldProps[key];
+        const newProp = newProps[key];
+
+        if (oldProp !== newProp) {
+          hostPatchProp(el, key, oldProp, newProp);
+        }
       }
-    } else {
-      mountChildren(n1, n2, container, parentInstance);
+
+      if (oldProps !== EMPTY_OBJ) {
+        for (const key in oldProps) {
+          if (!Reflect.has(newProps, key)) {
+            hostPatchProp(el, key, oldProps[key], null);
+          }
+        }
+      }
     }
   }
 
@@ -101,7 +123,7 @@ export function createRenderer({ createElement, patchProps, insert }) {
     // 根据 虚拟节点 属性 创建 element （真实dom）
     const { type, props } = vnode;
 
-    const el = createElement(type);
+    const el = hostCreateElement(type);
 
     vnode.el = el;
 
@@ -111,18 +133,18 @@ export function createRenderer({ createElement, patchProps, insert }) {
     if (isTextChildren(shapeFlag)) {
       el.textContent = children;
     } else if (isArrayChildren(shapeFlag)) {
-      mountChildren(null, vnode, el, parentInstance);
+      mountChildren(vnode, el, parentInstance);
     }
 
     // 处理节点属性props
     if (props) {
       for (const key in props) {
         const value = props[key];
-        patchProps(el, key, value);
+        hostPatchProp(el, key, null, value);
       }
     }
     // 添加到容器中
-    insert(el, container);
+    hostInsert(el, container);
   }
 
   /**
@@ -131,18 +153,10 @@ export function createRenderer({ createElement, patchProps, insert }) {
    * @param vnode
    * @param container 子节点容器，既父节点 vnode
    */
-  function mountChildren(n1, n2, container, parentInstance) {
-    if (!n1) {
-      n2.children.forEach((child) => {
-        patch(null, child, container, parentInstance);
-      });
-    } else {
-      n2.children.forEach((child2, i) => {
-        const child1 = n1.children[i];
-
-        patchElement(child1, child2, container, parentInstance);
-      });
-    }
+  function mountChildren(vnode, container, parentInstance) {
+    vnode.children.forEach((child) => {
+      patch(null, child, container, parentInstance);
+    });
   }
 
   //
@@ -207,7 +221,7 @@ export function createRenderer({ createElement, patchProps, insert }) {
         instance.subTree = currentSubTree;
 
         patch(prevSubTree, currentSubTree, container, instance);
-        initialVNode.el = currentSubTree.el;
+        // initialVNode.el = currentSubTree.el;
       }
     });
   }

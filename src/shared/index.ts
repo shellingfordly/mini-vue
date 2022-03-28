@@ -5,6 +5,8 @@ enum Type {
   Function = "Function",
 }
 
+export const EMPTY_OBJ ={}
+
 const toString = Object.prototype.toString;
 
 function is(val, type) {
@@ -20,6 +22,12 @@ export const isArray = (val) => is(val, Type.Array);
 export const isString = (val) => is(val, Type.String);
 
 export const isFunction = (val) => is(val, Type.Function);
+
+export const isUndefined = (val) => val === undefined;
+
+export const isNull = (val) => val === null;
+
+export const isNullOrUndefined = (val) => isUndefined(val) || isNull(val);
 
 export const hasChange = (obj, newObj) => !Object.is(obj, newObj);
 
