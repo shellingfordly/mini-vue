@@ -346,3 +346,153 @@ function setupRnderEffect(instance, initialVNode, container) {
   patch(prevSubTree, currentSubTree, container, instance);
 }
 ```
+
+### 更新子节点
+
+- 指针 i，初始 = 0
+- c1 老的节点数组
+- c2 新的节点数组
+- e1 老节点数组指针，初始 = c1.length - 1
+- e2 新节点数组指针，初始 = c2.length - 1
+
+```ts
+function patchKeyedChaildren(c1, c2, container, parentInstance, anchor) {
+  let i = 0;
+  const l2 = c2.length;
+  let e1 = c1.length - 1;
+  let e2 = l2 - 1;
+  const isSomeVNodeType = (n1, n2) => n1.type === n2.type && n1.key === n2.key;
+
+  // ... 后续代码 分开解析
+}
+```
+
+1. 从左侧对比
+
+从左侧开始对比节点，出现不同节点时退出，此时 i 位置以及之后的节点需要处理
+
+```ts
+while (i <= e1 && i <= e2) {
+  // 获取 左侧 节点
+  const n1 = c1[i];
+  const n2 = c2[i];
+  if (isSomeVNodeType(n1, n2)) {
+    // 相同节点去调用patch对比属性以及子节点
+    patch(n1, n2, container, parentInstance, anchor);
+  } else {
+    // 不同则 退出，i 停在 c2 子节点中出现的第一个新节点位置处
+    break;
+  }
+  i++;
+}
+```
+
+2. 从右侧对比
+
+从右侧开始对比节点，出现不同节点时退出，此时 e1/e2 位置前的节点需要处理
+
+```ts
+while (i <= e1 && i <= e2) {
+  // 获取 右侧 节点
+  const n1 = c1[e1];
+  const n2 = c2[e2];
+
+  if (isSomeVNodeType(n1, n2)) {
+    patch(n1, n2, container, parentInstance, anchor);
+  } else {
+    // 出现不同时，e1和 e2 停在 c1 中出现 第一个 c2 没有的节点位置处
+    break;
+  }
+
+  e1--;
+  e2--;
+}
+```
+
+#### 例子
+
+1. 在原有的基础上增加子节点
+
+- 在尾部增加新节点
+
+![尾部增加](https://user-images.githubusercontent.com/39196952/160577800-00c75440-5002-4349-bc14-efcf23839bbc.png)
+
+最初：i = 0, e1 = 1, e2 = 2, 从左侧对比，AB 相等；
+则 i = 2, e1 = 1, e2 = 2；
+满足 i > e1, 且 i <= e2, 添加新节点 C。
+
+```ts
+if (i > e1) {
+  if (i <= e2) {
+    while (i <= e2) {
+      patch(null, c2[i], container, parentInstance, null);
+      i++;
+    }
+  }
+}
+```
+
+- 在头部增加节点
+
+![头部增加](https://user-images.githubusercontent.com/39196952/160580549-446f0db9-e8de-4f30-87a2-1b92bd72c796.png)
+
+最初：i = 0, e1 = 1, e2 = 2, 右侧对比，BC 相等；
+则 i = 0, e1 = -1, e2 = 0；
+满足 i > e1, 且 i <= e2, 在 B 前面添加新节点 A。
+
+```ts
+if (i > e1) {
+  if (i <= e2) {
+    const anchor = e2 + 1 < l2 ? c2[e2 + 1].el : null;
+    while (i <= e2) {
+      patch(null, c2[i], container, parentInstance, anchor);
+      i++;
+    }
+  }
+}
+```
+
+- 在中间增加节点
+
+![中间增加](https://user-images.githubusercontent.com/39196952/160581338-e2db7b0c-2975-4a4e-99e0-d7b467f6c043.png)
+
+最初：i = 0, e1 = 1, e2 = 2, 左侧对比，右侧对比，AC 相等；
+则 i = 1, e1 = 0, e2 = 1；
+满足 i > e1, 且 i <= e2, 在 C 前面添加新节点 B。
+
+中间添加与头部添加没有太大差别，i 的移动并不影响 e1 和 e2 的移动，最终 e2+1 就是与 e1 最后一个相同的右侧节点，因此将从 i 到 e2 的不同节点全部添加到 anchor 前即可。
+
+1. 删除多的节点
+
+```ts
+if (i > e2) {
+  while (i <= e1) {
+    hostRemove(c1[i].el);
+    i++;
+  }
+}
+```
+
+- 删除尾部多的节点
+
+![删除尾部节点](https://user-images.githubusercontent.com/39196952/160582265-6da1bae1-41fb-4f7d-a97b-97a8fdabc074.png)
+
+最初：i = 0, e1 = 2, e2 = 1, 左侧对比，AB 相等;
+退出循环时 i = 2, e1 = 2, e2 = 1；
+此时 i > e2，调用 hostRemove 删除 i 到 e1 位置的所有多的节点。
+
+- 删除头部多的节点
+
+![删除头部节点](https://user-images.githubusercontent.com/39196952/160583340-d6055248-7220-41f6-8e0a-414fdd9969df.png)
+
+最初：i = 0, e1 = 2, e2 = 1, 左侧对比，AB 相等;
+退出循环时 i = 0, e1 = 0, e2 = -1；
+
+- 删除中间多的节点
+
+![删除中间节点](https://user-images.githubusercontent.com/39196952/160583800-3b490136-6c1c-45e0-a59f-a7f4f30e7354.png)
+
+最初：i = 0, e1 = 2, e2 = 1, 左侧对比，AB 相等;
+退出循环时 i = 1, e1 = 1, e2 = 0；
+
+删除逻辑都是一样的，因为删除老节点必然 e2 < e1, 不管怎么对比，最终都满足 i > e2, 将 i - e1 位置的节点删除即可。

@@ -1,0 +1,90 @@
+xx
+<div id="app"></div>
+
+<script type="module">
+  import { ref, reactive, createApp, h, Text } from "../../lib/mini-vue.esm.js";
+
+  const prevChildren1 = [h("p", { key: "A" }, "A"), h("p", { key: "B" }, "B")];
+  const prevChildren = [
+    h("p", { key: "A" }, "A"),
+    h("p", { key: "B" }, "B"),
+    h("p", { key: "C" }, "C"),
+  ];
+  const prevChildren3 = [h("p", { key: "A" }, "A"), h("p", { key: "D" }, "D")];
+
+  // 后面 增加 节点
+  const nextChildren1 = [
+    h("p", { key: "A" }, "A"),
+    h("p", { key: "B" }, "B"),
+    h("p", { key: "C" }, "C"),
+    h("p", { key: "D" }, "D"),
+  ];
+
+  // 前面 增加 节点
+  const nextChildren2 = [
+    h("p", { key: "D" }, "D"),
+    h("p", { key: "C" }, "C"),
+    h("p", { key: "A" }, "A"),
+    h("p", { key: "B" }, "B"),
+  ];
+
+  // 中间 增加 节点
+  const nextChildren3= [
+    h("p", { key: "A" }, "A"),
+    h("p", { key: "B" }, "B"),
+    h("p", { key: "C" }, "C"),
+    h("p", { key: "D" }, "D"),
+  ];
+
+  // 删除 尾部多的 老节点
+  const nextChildren4 = [h("p", { key: "A" }, "A")];
+
+  // 删除 头部多的 老节点
+  const nextChildren5 = [h("p", { key: "C" }, "C")];
+
+  // 删除 中间多的 老节点
+  const nextChildren6 = [
+    h("p", { key: "A" }, "A"),
+    h("p", { key: "C" }, "C"),
+  ];
+
+  // 排序
+  const nextChildren = [
+    h("p", { key: "C" }, "C"),
+    h("p", { key: "A" }, "A"),
+    h("p", { key: "B" }, "B"),
+  ];
+  
+
+  const Compoent = {
+    name: "Compoent",
+    setup() {
+      const change = ref(true);
+      window.change = change;
+
+      return { change };
+    },
+    render() {
+      return this.change
+        ? h("div", {}, prevChildren)
+        : h("div", {}, nextChildren);
+    },
+  };
+
+  const App = {
+    name: "App",
+    setup() {
+      const change = ref(true);
+      window.change = change;
+
+      return {
+        change,
+      };
+    },
+    render() {
+      return h("div", {}, [h(Compoent)]);
+    },
+  };
+
+  createApp(App).mount(document.getElementById("app"));
+</script>

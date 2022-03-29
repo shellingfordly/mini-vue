@@ -1,0 +1,39 @@
+xx
+<div id="app"></div>
+
+<script type="module">
+  import { ref, reactive, createApp, h, Text } from "../../lib/mini-vue.esm.js";
+
+  const prevChildren = "nextChildren";
+  const nextChildren = [h("p", { key: "A" }, "A"), h("p", { key: "B" }, "B")];
+
+  const Compoent = {
+    name: "Compoent",
+    setup() {
+      const change = ref(true);
+      window.change = change;
+
+      return { change };
+    },
+    render() {
+      return this.change
+        ? h("div", {}, prevChildren)
+        : h("div", {}, nextChildren);
+    },
+  };
+
+  const App = {
+    name: "App",
+    setup() {
+      const change = ref(true);
+      window.change = change;
+
+      return { change };
+    },
+    render() {
+      return h("div", {}, [h(Compoent)]);
+    },
+  };
+
+  createApp(App).mount(document.getElementById("app"));
+</script>
