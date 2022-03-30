@@ -175,11 +175,140 @@ export function createRenderer({
           patch(null, c2[i], container, parentInstance, anchor);
           i++;
         }
-      } 
+      }
     } else if (i > e2) {
       while (i <= e1) {
         hostRemove(c1[i].el);
         i++;
+      }
+    } else {
+      const s1 = i;
+      const s2 = i;
+      const toBePatched = e2 - s2 + 1;
+      // 记录 c2 里面， 从 i - e2 的节点位置，方便后面判断 c1 中存在的老节点是 更新还是删除
+      const keyToNewINdexMap = new Map();
+      // c2 中新节点 在 老节点 c1 中的 位置索引 映射
+      // 这个map是为了去做 老节点的位置更新的
+      const newIndexToOldIndexMap = new Array(toBePatched).fill(-1);
+      // 优化更新
+      let moved = true;
+      let maxNewIndexSoFar = 0;
+
+      // 将不同的 新节点 的 {key: index} 保存起来
+      for (let i = s2; i <= e2; i++) {
+        const nextChild = c2[i];
+        nextChild.key && keyToNewINdexMap.set(nextChild.key, i);
+      }
+      // 遍历 c1 中不同节点 部分 --- 删除 c1 中不存在的节点， patch 更新相同节点
+      for (let i = s1; i <= e1; i++) {
+        const prevChild = c1[i];
+
+        // 已经做过更新的 节点数
+        let patched = 0;
+
+        // 当更新 过的节点数 已经 大于等于 新节点数量时，直接删除 c1 中剩余的所有节点
+        // 前提都是 在 s1 - e1 这个索引范围内
+        if (patched >= toBePatched) {
+          hostRemove(prevChild.el);
+          continue;
+        }
+
+        // 是否存在 新节点的 索引
+        let newIndex;
+
+        // 有 key 值从 keyToNewINdexMap 中找
+        if (prevChild.key !== null) {
+          newIndex = keyToNewINdexMap.get(prevChild.key);
+        } else {
+          // 没有 key， 遍历 c2 找
+          // 找到与 老节点 prevChild 相同的节点 返回
+          for (let i = s2; i <= e2; i++) {
+            if (isSomeVNodeType(prevChild, c2[i])) {
+              newIndex = i;
+              break;
+            }
+          }
+        }
+
+        if (newIndex === undefined) {
+          // newIndex 新节点索引 不存在， 删除老节点
+          hostRemove(prevChild.el);
+        } else {
+          // 新节点 存在 做更新
+          /*
+            0 1 2 3 4 5
+            a b c d e f                            c: 2 d: 3 e: 4
+                s1  e1
+            a b e c d f                            e: 4 c: 2 d: 3
+                s2  e2       newIndexToOldIndexMap[ -1, 2, 3]
+
+                
+            newIndex 是 老节点 在 新节点数组 中的 下标
+              c节点 老下标为 2，新下标 3
+              c: 2 - nexIndex: 3, s2: 2
+              d: 3 - nexIndex: 4, s2: 2
+              e: 4 - newIndex: 2, s2: 2
+
+            在这个循环中，是循环老节点树，获取 此节点 在新节点树中的下标 位置，
+            而做位置更新时使用了 最长递增数列 的算法优化，因此如果节点的 绝对位置 不变，则不需要做 移动
+            
+            maxNewIndexSoFar 去记录上一个找到的 newIndex
+            如果下一个节点的 newIndex 比上一次的大，说明这个节点在新的节点树也是 在上一个节点 后面的，因此不需要移动
+
+            如果下一个节点的 newIndex 比上一个的小，则说明此节点 在新节点树中发生了位置变化，需要移动，打开 moved开关
+          
+          */
+          if (newIndex >= maxNewIndexSoFar) {
+            maxNewIndexSoFar = newIndex;
+          } else {
+            moved = true;
+          }
+
+          // 通过 prevChild.key 找到 此节点在新节点树中的 位置下标（newIndex）
+          // newIndex - s2 此时为 在不同节点 范围内，此节点在 新节点树中的 绝对位置
+          // 将这个绝对位置的值设置为，此节点在 老节点树中的 下标 i
+          // newIndexToOldIndexMap 就映射了 节点的新位置和老位置，下标为新位置，值为老位置
+          // 因为从 newIndexToOldIndexMap 找到最长的递增数列，就是那些绝对位置没有变的节点，而剩下的就是需要改变的
+          // 也正因如此，上面 可以同记录上一次的 newIndex 来判断是否需要 移动
+          newIndexToOldIndexMap[newIndex - s2] = i;
+          patch(prevChild, c2[newIndex], container, parentInstance, null);
+          patched++;
+        }
+      }
+
+      // 获取 老节点索引 的 最长递增子序列，不需要移动的节点的 相对位置 是不会变化的， 一定是低增的
+      const increasingNewIndexSequence = moved
+        ? getSequence(newIndexToOldIndexMap)
+        : [];
+      let j = increasingNewIndexSequence.length - 1;
+
+
+      /*
+        a b (c d e) f  
+        a b (e c d) f  
+        为什么这里 只需要 for 改变节点范围的长度 toBePatched 去对比 increasingNewIndexSequence 最长地址数列就可以知道需不需要移动
+
+        因为 increasingNewIndexSequence 数组代表的是 不需要移动的节点 在新节点树的下标值，因此在更新之后这个 下标的 对应的节点之间的 绝对位置是不变的；
+        在 这个 更新节点 的个数范围里面，只需要找到那个在 increasingNewIndexSequence 不存的下标， 就是需要 移动的 节点 位置，
+        而这个节点就是 c2中 [数量长度 加上 新节点不同 的起点 s2] 位置的节点
+        
+        而之所以 从最后一个节点位置 toBePatched 开始循环，是因为 在不同节点范围内的节点 的位置不稳定的；
+        而 toBePatched + 1 位置的节点是稳定的，因为它要么是 尾部的相同节点， 要么超出了 节点树长度，就直接增加到 最后就行
+
+      */
+
+      for (let i = toBePatched - 1; i >= 0; i--) {
+        const nextIndex = i + s2;
+        const nextChild = c2[nextIndex];
+        const anchor = nextIndex + 1 < l2 ? c2[nextIndex + 1].el : null;
+
+        if (moved) {
+          if (i !== increasingNewIndexSequence[j]) {
+            hostInsert(nextChild.el, container, anchor);
+          } else {
+            j--;
+          }
+        }
       }
     }
   }
@@ -330,16 +459,48 @@ export function createRenderer({
     });
   }
 
-  /**
-   * @description 判断是否为 事件 key
-   * @param key string
-   * @returns
-   */
-  function isOnEvent(key): boolean {
-    return /^on[A-Z]/.test(key);
-  }
-
   return {
     createApp: createAppAPI(render),
   };
+}
+
+function getSequence(arr) {
+  const p = arr.slice();
+  const result = [0];
+  let i, j, u, v, c;
+  const len = arr.length;
+  for (i = 0; i < len; i++) {
+    const arrI = arr[i];
+    if (arrI !== 0) {
+      j = result[result.length - 1];
+      if (arr[j] < arrI) {
+        p[i] = j;
+        result.push(i);
+        continue;
+      }
+      u = 0;
+      v = result.length - 1;
+      while (u < v) {
+        c = (u + v) >> 1;
+        if (arr[result[c]] < arrI) {
+          u = c + 1;
+        } else {
+          v = c;
+        }
+      }
+      if (arrI < arr[result[u]]) {
+        if (u > 0) {
+          p[i] = result[u - 1];
+        }
+        result[u] = i;
+      }
+    }
+  }
+  u = result.length;
+  v = result[u - 1];
+  while (u-- > 0) {
+    result[u] = v;
+    v = p[v];
+  }
+  return result;
 }
