@@ -10,12 +10,13 @@
   import { ref, h, createApp, Fragment } from "../../lib/mini-vue.esm.js";
 
   // 组件没有setup会报错
-
+  
+  // 使用 Fragment 类型组件时会有问题
   const Child = {
     name: "Child",
     render() {
       console.log("Child", this, this.$props.message);
-      return h("div", { class: "child" }, [
+      return h(Fragment, { class: "child" }, [
         h("div", {}, "Child props: " + this.$props.message),
       ]);
     },

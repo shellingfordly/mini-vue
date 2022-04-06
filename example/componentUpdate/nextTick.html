@@ -1,0 +1,47 @@
+<div id="app"></div>
+
+<script type="module">
+  import {
+    ref,
+    h,
+    createApp,
+    getCurrentInstance,
+    nextTick,
+  } from "../../lib/mini-vue.esm.js";
+
+  const App = {
+    name: "App",
+    render() {
+      return h("div", {}, [
+        h("div", {}, "App: " + this.count),
+        h(
+          "button",
+          {
+            onClick: this.onClick,
+          },
+          "add"
+        ),
+      ]);
+    },
+    setup() {
+      const count = ref(1);
+      const instance = getCurrentInstance();
+
+      async function onClick() {
+        for (let i = 0; i < 100; i++) {
+          count.value = i;
+        }
+        await nextTick();
+        console.log(instance);
+      }
+
+      return {
+        count,
+        onClick,
+      };
+    },
+  };
+
+  const app = document.getElementById("app");
+  createApp(App).mount(app);
+</script>
