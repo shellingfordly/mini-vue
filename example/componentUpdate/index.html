@@ -1,0 +1,74 @@
+<style>
+  .red {
+    color: red;
+  }
+</style>
+
+<div id="app"></div>
+
+<script type="module">
+  import { ref, h, createApp, Fragment } from "../../lib/mini-vue.esm.js";
+
+  // 组件没有setup会报错
+
+  const Child = {
+    name: "Child",
+    render() {
+      console.log("Child", this, this.$props.message);
+      return h("div", { class: "child" }, [
+        h("div", {}, "Child props: " + this.$props.message),
+      ]);
+    },
+    setup() {
+      return {};
+    },
+  };
+
+  const App = {
+    name: "App",
+    render() {
+      return h("div", {}, [
+        h("div", {}, "App: " + this.count),
+        h(Child, {
+          message: this.message,
+        }),
+        h(
+          "button",
+          {
+            onClick: this.onClick,
+          },
+          "change child props"
+        ),
+        h(
+          "button",
+          {
+            onClick: this.onClickApp,
+          },
+          "change app data"
+        ),
+      ]);
+    },
+    setup() {
+      const message = ref(1);
+      const count = ref(1);
+
+      function onClick() {
+        message.value = Math.random();
+      }
+
+      function onClickApp() {
+        count.value++;
+      }
+
+      return {
+        count,
+        message,
+        onClick,
+        onClickApp,
+      };
+    },
+  };
+
+  const app = document.getElementById("app");
+  createApp(App).mount(app);
+</script>

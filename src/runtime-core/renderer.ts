@@ -9,7 +9,8 @@ import {
 import { Fragment, Text } from "./vnode";
 import { createAppAPI } from "./createApp";
 import { effect } from "../reactivity/src";
-import { EMPTY_OBJ, isString } from "../shared";
+import { EMPTY_OBJ } from "../shared";
+import { shouldUpdateComponent } from "./componentUpdateUtils";
 
 export function createRenderer({
   createElement: hostCreateElement,
@@ -282,7 +283,6 @@ export function createRenderer({
         : [];
       let j = increasingNewIndexSequence.length - 1;
 
-
       /*
         a b (c d e) f  
         a b (e c d) f  
@@ -400,7 +400,21 @@ export function createRenderer({
    */
   function processComponent(n1, n2, container, parentInstance, anchor) {
     // 调用组件挂载函数
-    mountComponent(n2, container, parentInstance, anchor);
+    if (!n1) {
+      mountComponent(n2, container, parentInstance, anchor);
+    } else {
+      updateComponent(n1, n2);
+    }
+  }
+
+  function updateComponent(n1, n2) {
+    const instance = (n2.component = n1.component);
+    if (shouldUpdateComponent(n1, n2)) {
+      instance.next = n2;
+      instance.update();
+    } else {
+      n2.el = n1.el;
+    }
   }
 
   /**
@@ -414,7 +428,10 @@ export function createRenderer({
    */
   function mountComponent(initialVNode, container, parentInstance, anchor) {
     // 创建 组件 实例
-    const instance = createComponentInstance(initialVNode, parentInstance);
+    const instance = (initialVNode.component = createComponentInstance(
+      initialVNode,
+      parentInstance
+    ));
 
     // 初始化组件： 初始化 props、slots等等， 挂载 component 到组件实例上
     setupComponent(instance);
@@ -430,7 +447,7 @@ export function createRenderer({
    * @param container
    */
   function setupRnderEffect(instance, initialVNode, container, anchor) {
-    effect(() => {
+    instance.update = effect(() => {
       // 初始化
       if (!instance.isMounted) {
         const { proxy } = instance;
@@ -448,7 +465,11 @@ export function createRenderer({
         instance.isMounted = true;
       } else {
         //更新
-        const { proxy } = instance;
+        const { proxy, vnode, next } = instance;
+        if (next) {
+          next.el = vnode.el;
+          updateComponentPreRender(instance, next);
+        }
         const currentSubTree = instance.render.call(proxy);
         const prevSubTree = instance.subTree;
         instance.subTree = currentSubTree;
@@ -462,6 +483,12 @@ export function createRenderer({
   return {
     createApp: createAppAPI(render),
   };
+}
+
+function updateComponentPreRender(instance, nextVnode) {
+  instance.vnode = nextVnode;
+  instance.next = null;
+  instance.props = nextVnode.props;
 }
 
 function getSequence(arr) {

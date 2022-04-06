@@ -11,11 +11,13 @@ export function createComponentInstance(vnode, parent) {
   const instance = {
     vnode,
     type: vnode.type,
+    next: null,
     proxy: {},
     setupState: {},
     props: {},
     provides: parent ? parent.provides : {},
     parent,
+    update: () => {},
     emit: () => {},
     slots: {},
     isMounted: false,
