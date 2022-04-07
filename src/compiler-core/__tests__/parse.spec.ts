@@ -17,7 +17,7 @@ describe("parse", () => {
   });
 
   describe("element", () => {
-    it.only("simple element div", () => {
+    it("simple element div", () => {
       const ast = baseParse("<div></div>");
 
       expect(ast.children[0]).toStrictEqual({
@@ -26,4 +26,19 @@ describe("parse", () => {
       });
     });
   });
+
+  describe("text", () => {
+    it("simple text", () => {
+      const ast = baseParse("this is a test");
+
+      expect(ast.children[0]).toStrictEqual({
+        type: NodeTypes.TEXT,
+        content: "this is a test",
+      });
+    });
+  });
+
+  
+  
+  
 });

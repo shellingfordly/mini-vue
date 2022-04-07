@@ -26,10 +26,29 @@ function parseChildren(context) {
     }
   }
 
-  
+  if (!node) {
+    node = parseText(context);
+  }
 
   nodes.push(node);
+
   return nodes;
+}
+
+function parseText(context) {
+  const content = parseTextData(context, context.source.length);
+  return {
+    type: NodeTypes.TEXT,
+    content,
+  };
+}
+
+function parseTextData(context, length) {
+  const content = context.source.slice(0, length);
+
+  advanceBy(context, length);
+
+  return content;
 }
 
 // 解析 element
@@ -44,6 +63,8 @@ function parseElement(context) {
 
 function parseTag(context, type: TagType) {
   const match: any = /^<\/?([a-z]*)/i.exec(context.source);
+
+  console.log("parseTag match", context, match);
 
   const tag = match[1];
   // 处理完成的字符串 清除掉
