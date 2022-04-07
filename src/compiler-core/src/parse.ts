@@ -45,7 +45,7 @@ function isEnd(context, ancestars) {
   if (s.startsWith("</")) {
     for (let i = 0; i < ancestars.length; i++) {
       const tag = ancestars[i];
-      if (s.slice(2, 2 + tag.length) === tag) {
+      if (startsWithEndTagOpen(s, tag)) {
         return true;
       }
     }
@@ -88,13 +88,20 @@ function parseElement(context, ancestars) {
   element.children = parseChildren(context, ancestars);
   ancestars.pop();
 
-  if (context.source.slice(2, 2 + element.tag.length) === element.tag) {
+  if (startsWithEndTagOpen(context.source, element.tag)) {
     parseTag(context, TagType.End);
   } else {
     throw new Error(`${element.tag}`);
   }
 
   return element;
+}
+
+function startsWithEndTagOpen(source, tag) {
+  return (
+    source.startsWith("</") &&
+    source.slice(2, 2 + tag.length).toLowerCase() === tag.toLowerCase()
+  );
 }
 
 function parseTag(context, type: TagType) {
