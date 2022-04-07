@@ -8,35 +8,64 @@ const enum TagType {
 export function baseParse(content: string) {
   const context = createParserContext(content);
 
-  return createRoot(parseChildren(context));
+  return createRoot(parseChildren(context, []));
 }
 
-function parseChildren(context) {
+function parseChildren(context, ancestars) {
   const nodes: any[] = [];
-  const s = context.source;
-  let node;
 
-  // 处理 插值
-  if (s.startsWith("{{")) {
-    node = parseInterpolation(context);
-  } else if (s.startsWith("<")) {
-    // 处理 标签
-    if (/[a-z]/i.test(s[1])) {
-      node = parseElement(context);
+  while (!isEnd(context, ancestars)) {
+    let node;
+    const s = context.source;
+
+    if (s.startsWith("{{")) {
+      // 处理 插值
+      node = parseInterpolation(context);
+    } else if (s[0] === "<") {
+      // 处理 标签
+      if (/[a-z]/i.test(s[1])) {
+        node = parseElement(context, ancestars);
+      }
     }
-  }
 
-  if (!node) {
-    node = parseText(context);
-  }
+    // 处理文本
+    if (!node) {
+      node = parseText(context);
+    }
 
-  nodes.push(node);
+    nodes.push(node);
+  }
 
   return nodes;
 }
 
+function isEnd(context, ancestars) {
+  const s = context.source;
+
+  if (s.startsWith("</")) {
+    for (let i = 0; i < ancestars.length; i++) {
+      const tag = ancestars[i];
+      if (s.slice(2, 2 + tag.length) === tag) {
+        return true;
+      }
+    }
+  }
+
+  return !s;
+}
+
 function parseText(context) {
-  const content = parseTextData(context, context.source.length);
+  let endIndex = context.source.length;
+  let endTokens = ["<", "{{"];
+
+  for (let i = 0; i < endTokens.length; i++) {
+    const index = context.source.indexOf(endTokens[i]);
+    if (index !== -1 && endIndex > index) {
+      endIndex = index;
+    }
+  }
+
+  const content = parseTextData(context, endIndex);
   return {
     type: NodeTypes.TEXT,
     content,
@@ -53,10 +82,17 @@ function parseTextData(context, length) {
 
 // 解析 element
 //   处理标签 <div></div>
-function parseElement(context) {
-  const element = parseTag(context, TagType.Start);
+function parseElement(context, ancestars) {
+  const element: any = parseTag(context, TagType.Start);
+  ancestars.push(element.tag);
+  element.children = parseChildren(context, ancestars);
+  ancestars.pop();
 
-  parseTag(context, TagType.End);
+  if (context.source.slice(2, 2 + element.tag.length) === element.tag) {
+    parseTag(context, TagType.End);
+  } else {
+    throw new Error(`${element.tag}`);
+  }
 
   return element;
 }
@@ -64,9 +100,7 @@ function parseElement(context) {
 function parseTag(context, type: TagType) {
   const match: any = /^<\/?([a-z]*)/i.exec(context.source);
 
-  console.log("parseTag match", context, match);
-
-  const tag = match[1];
+  const tag = match?.[1];
   // 处理完成的字符串 清除掉
   // 清除 <div
   advanceBy(context, match[0].length);
@@ -121,8 +155,8 @@ function createRoot(children) {
   };
 }
 
-function createParserContext(children) {
+function createParserContext(content: string) {
   return {
-    source: children,
+    source: content,
   };
 }
