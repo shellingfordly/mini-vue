@@ -68,11 +68,10 @@ tsconfig 需要配置 moduleResolution 属性为 node，否则导入文件时需
 
 ### 位运算
 
-> 由于位运算更快，有时候可以使用2进制来表示数据类型，在进行判断时使用位运算，可以优化性能
+> 由于位运算更快，有时候可以使用 2 进制来表示数据类型，在进行判断时使用位运算，可以优化性能
 
 - | (或运算) 都为 0 则为 0，否则为 1
 - & (与运算) 都为 1 则 为 1，否则为 0
-
 
 #### 二进制
 
@@ -92,6 +91,110 @@ export enum ShapeFlag {
 }
 ```
 
+### 有限状态机
 
+> 读取一组输入然后根据这些速入来更改为不同的状态
 
+1. 是否存在 abc
 
+- 逻辑
+  - 如果 a 状态存在，返回下一个状态 b，以此类推
+  - 最后一个状态 c 存在，返回 end 结束状态
+  - 否则返回当前状态
+- 执行过程
+  - 声明初始状态 currentState， 设置为 waitForA
+  - 循环字符串，将 currentState 更新为 waitForA 返回的状态
+  - 更新后的状态可能是 新状态 b， 也可能是老状态 a
+  - 知道状态为 end，return true 退出循环
+
+```ts
+export function stateMachine(str: string) {
+  const waitForA = (char) => {
+    if (char === "a") {
+      return waitForB;
+    }
+    return waitForA;
+  };
+
+  const waitForB = (char) => {
+    if (char === "b") {
+      return waitForC;
+    }
+    return waitForB;
+  };
+
+  const waitForC = (char) => {
+    if (char === "c") {
+      return end;
+    }
+    return waitForC;
+  };
+
+  const end = () => {
+    return end;
+  };
+
+  let currentState = waitForA;
+  for (let i = 0; i < str.length; i++) {
+    const nextState = currentState(str[i]);
+    currentState = nextState;
+
+    if (nextState === end) {
+      return true;
+    }
+  }
+  return false;
+}
+```
+
+2. 记录匹配字符的 index
+
+- 初始状态 a 成功时记录 startIndex，c 进入结束状态时记录 endIndex
+- 循环中状态机为 end 时记录 [startIndex, endIndex]
+
+```ts
+export function stateMachine(str: string) {
+  let i = 0;
+  let startIndex;
+  let endIndex;
+  const result = [];
+
+  const waitForA = (char) => {
+    if (char === "a") {
+      startIndex = i;
+      return waitForB;
+    }
+    return waitForA;
+  };
+
+  const waitForB = (char) => {
+    if (char === "b") {
+      return waitForC;
+    }
+    return waitForB;
+  };
+
+  const waitForC = (char) => {
+    if (char === "c") {
+      endIndex = i;
+      return end;
+    }
+    return waitForC;
+  };
+
+  const end = () => {
+    return end;
+  };
+
+  let currentState = waitForA;
+  for (let i = 0; i < str.length; i++) {
+    const nextState = currentState(str[i]);
+    currentState = nextState;
+
+    if (nextState === end) {
+      result.push([startIndex, endIndex]);
+    }
+  }
+  return result;
+}
+```
