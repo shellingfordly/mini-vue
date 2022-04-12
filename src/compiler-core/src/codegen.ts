@@ -78,9 +78,36 @@ function genElement(
   context: { code: string; push(source: any): void; helper(key: any): string }
 ) {
   const { push, helper } = context;
-  const { tag } = node;
+  const { tag, children } = node;
 
-  push(`${helper(CREATE_ELEMENT_VNODE)}("${tag}")`);
+  push(`${helper(CREATE_ELEMENT_VNODE)}("${tag}"`);
+
+  if (children.length) {
+    push(", null, ");
+
+    const hasElementChild = children.find(
+      (child) => child.type === NodeTypes.ELEMENT
+    );
+    if (hasElementChild) {
+      push("[ ");
+    }
+    for (let i = 0; i < children.length; i++) {
+      const child = children[i];
+      genNode(child, context);
+      if (i < children.length - 1) {
+        if (!hasElementChild) {
+          push(" + ");
+        } else {
+          push(" , ");
+        }
+      }
+    }
+    if (hasElementChild) {
+      push("] ");
+    }
+  }
+
+  push(")");
 }
 
 function createGenerateContext() {
