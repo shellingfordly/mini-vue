@@ -43,9 +43,6 @@ export function stateMachine(str: string) {
     }
   }
 
-  console.log(result);
-  
-
   return result;
   // return false;
 }

@@ -1,7 +1,21 @@
-export function transform(root, options) {
+import { NodeTypes } from "./ast";
+import { TO_DISPLAY_STRING } from "./runtimeHelper";
+
+/**
+ * @description transform
+ *   将 basePardse 生成的ast树转换为方便 generate 方便去操作的节点树
+ *   方便 generate 生成 render 函数
+ * @param root
+ * @param options
+ */
+export function transform(root, options = {}) {
   const context = createTransfromContext(root, options);
 
   traverseNode(root, context);
+
+  createRootCodegen(root);
+
+  root.helpers = [...context.helpers.keys()];
 }
 
 function traverseNode(node, context) {
@@ -10,7 +24,17 @@ function traverseNode(node, context) {
     transform(node);
   }
 
-  traverseChildren(node, context);
+  switch (node.type) {
+    case NodeTypes.INTERPOLATION:
+      context.helper(TO_DISPLAY_STRING);
+      break;
+    case NodeTypes.ROOT:
+    case NodeTypes.ELEMENT:
+      traverseChildren(node, context);
+      break;
+    default:
+      break;
+  }
 }
 
 function traverseChildren(node: any, context: any) {
@@ -24,8 +48,17 @@ function traverseChildren(node: any, context: any) {
 }
 
 function createTransfromContext(root: any, options: any) {
-  return {
+  const context = {
     root,
     nodeTransform: options.nodeTransform || [],
+    helpers: new Map(),
+    helper(key) {
+      context.helpers.set(key, 1);
+    },
   };
+  return context;
+}
+
+function createRootCodegen(root: any) {
+  root.codegenNode = root.children[0].children[0];
 }
