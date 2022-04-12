@@ -21,7 +21,7 @@ export function transform(root, options = {}) {
 function traverseNode(node, context) {
   for (let i = 0; i < context.nodeTransform.length; i++) {
     const transform = context.nodeTransform[i];
-    transform(node);
+    transform(node, context);
   }
 
   switch (node.type) {
@@ -60,5 +60,5 @@ function createTransfromContext(root: any, options: any) {
 }
 
 function createRootCodegen(root: any) {
-  root.codegenNode = root.children[0].children[0];
+  root.codegenNode = root.children[0];
 }
