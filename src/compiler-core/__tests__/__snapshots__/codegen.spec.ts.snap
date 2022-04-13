@@ -2,7 +2,7 @@
 
 exports[`codegen element > element > interpolation/string 1`] = `
 "const { toDisplayString: _toDisplayString, createElementVnode: _createElementVnode } = Vue
-return function render(_ctx, _cache){return _createElementVnode(\\"div\\", null, \\"hi, \\")}"
+return function render(_ctx, _cache){return _createElementVnode(\\"div\\", null, [ \\"hi, \\", _createElementVnode(\\"span\\", null, \\"I'm \\" + _toDisplayString(_ctx.message))] )}"
 `;
 
 exports[`codegen element > interpolation/string 1`] = `

@@ -101,7 +101,28 @@ function genElement(
   const { push, helper } = context;
   const { tag, children, props } = node;
   push(`${helper(CREATE_ELEMENT_VNODE)}(`);
-  genNodeList(genNullable([tag, props, children]), context);
+
+  genNodeList(genNullable([tag, props]), context);
+
+  const isMoreElement = !!children.find(
+    (child) => child.type === NodeTypes.ELEMENT
+  );
+
+  push(", ");
+
+  if (isMoreElement) {
+    push("[ ");
+  }
+  if (children.length) {
+    genNodeList(children, context);
+  } else {
+    push("null");
+  }
+
+  if (isMoreElement) {
+    push("] ");
+  }
+
   push(")");
 }
 
@@ -113,7 +134,11 @@ function genNodeList(nodes, context) {
     if (isString(node)) {
       push(node);
     } else {
-      genNode(node, context);
+      let codegenNode = node;
+      if (node.type === NodeTypes.ELEMENT) {
+        codegenNode = node.codegenNode;
+      }
+      genNode(codegenNode, context);
     }
 
     if (i < nodes.length - 1) {

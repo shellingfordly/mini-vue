@@ -53,7 +53,7 @@ describe("codegen", () => {
   });
 
   it("element > element > interpolation/string", () => {
-    const ast = baseParse("<div>hi, <span>{{message}}</span></div>");
+    const ast = baseParse("<div>hi, <span>I'm {{message}}</span></div>");
 
     transform(ast, {
       nodeTransform: [transformExpression, transformElement, transformText],
