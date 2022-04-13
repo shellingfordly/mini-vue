@@ -111,9 +111,9 @@ function genChildren(children, context) {
   const isMoreElement = !!children.find(
     (child) => child.type === NodeTypes.ELEMENT
   );
-  push(", ");
+  children.length && push(", ");
   isMoreElement && push("[ ");
-  children.length ? genNodeList(children, context) : push("null");
+  genNodeList(children, context);
   isMoreElement && push("] ");
 }
 

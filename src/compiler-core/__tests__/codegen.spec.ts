@@ -63,4 +63,18 @@ describe("codegen", () => {
 
     expect(code).toMatchSnapshot();
   });
+
+  it("element > element > element", () => {
+    const ast = baseParse(
+      "<div><p><span>Hi, Tom.</span> My name is {{username}}</p></div>"
+    );
+
+    transform(ast, {
+      nodeTransform: [transformExpression, transformElement, transformText],
+    });
+
+    const code = generate(ast);
+
+    expect(code).toMatchSnapshot();
+  });
 });
