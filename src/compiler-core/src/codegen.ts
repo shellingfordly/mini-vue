@@ -99,31 +99,22 @@ function genElement(
   context: { code: string; push(source: any): void; helper(key: any): string }
 ) {
   const { push, helper } = context;
-  const { tag, children, props } = node;
+  const { tag, props, children } = node;
   push(`${helper(CREATE_ELEMENT_VNODE)}(`);
-
   genNodeList(genNullable([tag, props]), context);
+  genChildren(children, context);
+  push(")");
+}
 
+function genChildren(children, context) {
+  const { push } = context;
   const isMoreElement = !!children.find(
     (child) => child.type === NodeTypes.ELEMENT
   );
-
   push(", ");
-
-  if (isMoreElement) {
-    push("[ ");
-  }
-  if (children.length) {
-    genNodeList(children, context);
-  } else {
-    push("null");
-  }
-
-  if (isMoreElement) {
-    push("] ");
-  }
-
-  push(")");
+  isMoreElement && push("[ ");
+  children.length ? genNodeList(children, context) : push("null");
+  isMoreElement && push("] ");
 }
 
 function genNodeList(nodes, context) {
