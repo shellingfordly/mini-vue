@@ -59,7 +59,7 @@ describe("effect", () => {
     expect(doubleCount).toBe(4);
   });
 
-  it("should observe stop", () => {
+  it.only("should observe stop", () => {
     let doubleCount;
     const count = reactive({ value: 1 });
     const runner = effect(() => {
@@ -81,6 +81,13 @@ describe("effect", () => {
     // 重新触发 effect.run
     runner();
     expect(doubleCount).toBe(6);
+
+    count.value++;
+    expect(count.value).toBe(4);
+    expect(doubleCount).toBe(6);
+
+    runner();
+    expect(doubleCount).toBe(8);
   });
 });
 1;

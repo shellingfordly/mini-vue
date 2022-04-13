@@ -9,7 +9,7 @@ export class ReactiveEffect {
   deps: Set<ReactiveEffect | null>[] = [];
   active = true;
 
-  constructor(public fn, public scheduler) {}
+  constructor(public fn, public scheduler?) {}
 
   run() {
     // 当执行过 stop 之后，清除掉了 effect，就不需要做 activeEffect 赋值操作
@@ -50,9 +50,11 @@ function cleanupEffect(effect) {
   effect.deps.length = 0;
 }
 
-export function effect(fn, options: any = {}) {
-  const _effect = new ReactiveEffect(fn, options.scheduler);
+export function effect(fn, options = {}) {
+  const _effect = new ReactiveEffect(fn);
 
+  // 将 options 合并到 _effect 上
+  Object.assign(_effect, options);
   _effect.run();
 
   const runner: any = _effect.run.bind(_effect);
