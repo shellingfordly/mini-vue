@@ -4,6 +4,7 @@ import {
   helperMapName,
   TO_DISPLAY_STRING,
 } from "./runtimeHelper";
+import { isString } from "../../shared";
 
 export function generate(ast) {
   const context = createGenerateContext();
@@ -41,14 +42,34 @@ function genNode(
     case NodeTypes.ELEMENT:
       genElement(node, context);
       break;
+    case NodeTypes.COMPUND_EXPORESS:
+      genCompundExpression(node, context);
+      break;
     default:
       break;
   }
 }
 
+function genCompundExpression(
+  node: any,
+  context: { code: string; push(source: any): void; helper(key: any): string }
+) {
+  const { children } = node;
+  const { push } = context;
+
+  for (let i = 0; i < children.length; i++) {
+    const child = children[i];
+    if (isString(child)) {
+      push(child);
+    } else {
+      genNode(child, context);
+    }
+  }
+}
+
 function genText(
   node: any,
-  context: { code: string; push(source: any): void }
+  context: { code: string; push(source: any): void; helper(key: any): string }
 ) {
   const { push } = context;
   push(`"${node.content}"`);
@@ -78,36 +99,31 @@ function genElement(
   context: { code: string; push(source: any): void; helper(key: any): string }
 ) {
   const { push, helper } = context;
-  const { tag, children } = node;
+  const { tag, children, props } = node;
+  push(`${helper(CREATE_ELEMENT_VNODE)}(`);
+  genNodeList(genNullable([tag, props, children]), context);
+  push(")");
+}
 
-  push(`${helper(CREATE_ELEMENT_VNODE)}("${tag}"`);
+function genNodeList(nodes, context) {
+  const { push } = context;
+  for (let i = 0; i < nodes.length; i++) {
+    const node = nodes[i];
 
-  if (children.length) {
-    push(", null, ");
-
-    const hasElementChild = children.find(
-      (child) => child.type === NodeTypes.ELEMENT
-    );
-    if (hasElementChild) {
-      push("[ ");
+    if (isString(node)) {
+      push(node);
+    } else {
+      genNode(node, context);
     }
-    for (let i = 0; i < children.length; i++) {
-      const child = children[i];
-      genNode(child, context);
-      if (i < children.length - 1) {
-        if (!hasElementChild) {
-          push(" + ");
-        } else {
-          push(" , ");
-        }
-      }
-    }
-    if (hasElementChild) {
-      push("] ");
+
+    if (i < nodes.length - 1) {
+      push(", ");
     }
   }
+}
 
-  push(")");
+function genNullable(args: any[]) {
+  return args.map((arg) => arg || "null");
 }
 
 function createGenerateContext() {
@@ -123,6 +139,7 @@ function createGenerateContext() {
 
   return context;
 }
+
 function genFunctionPreamble(
   ast: any,
   context: { code: string; push(source: any): void; helper(key: any): string }
