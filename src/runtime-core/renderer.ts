@@ -454,7 +454,7 @@ export function createRenderer({
         if (!instance.isMounted) {
           const { proxy } = instance;
           // 执行 组件实例 上的 render 函数，拿到 虚拟节点树
-          const subTree = instance.render.call(proxy);
+          const subTree = instance.render.call(proxy, proxy);
           instance.subTree = subTree;
 
           // 调用 patch 处理 节点树
@@ -473,7 +473,7 @@ export function createRenderer({
             next.el = vnode.el;
             updateComponentPreRender(instance, next);
           }
-          const currentSubTree = instance.render.call(proxy);
+          const currentSubTree = instance.render.call(proxy, proxy);
           const prevSubTree = instance.subTree;
           instance.subTree = currentSubTree;
 

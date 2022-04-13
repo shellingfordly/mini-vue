@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Complier</title>
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <script type="module">
+      import { ref, createApp } from "../lib/mini-vue.esm.js";
+
+      const App = {
+        name: "App",
+        template: `<div> <span> Hi, Tom! </span> <p> My name is {{name}}.</p> </div> `,
+        setup() {
+          const name = ref("Juny");
+
+          setTimeout(() => {
+            name.value = "Tom";
+          }, 1000);
+          return { name };
+        },
+      };
+
+      const app = document.getElementById("app");
+      createApp(App).mount(app);
+    </script>
+  </body>
+</html>

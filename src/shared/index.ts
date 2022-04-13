@@ -1,3 +1,5 @@
+export * from "./toDisplayString";
+
 enum Type {
   Object = "Object",
   Array = "Array",
@@ -5,7 +7,7 @@ enum Type {
   Function = "Function",
 }
 
-export const EMPTY_OBJ ={}
+export const EMPTY_OBJ = {};
 
 const toString = Object.prototype.toString;
 

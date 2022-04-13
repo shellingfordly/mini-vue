@@ -81,6 +81,12 @@ function finishComponentSetup(instance) {
   const Component = instance.type;
   const proxy = instance.proxy;
 
+  if (compiler && !Component.render) {
+    if (Component.template) {
+      Component.render = compiler(Component.template);
+    }
+  }
+
   // 将组件上的 render 函数赋到 组件实例上
   if (Component.render) {
     instance.render = Component.render.bind(proxy);
@@ -107,4 +113,10 @@ export function getCurrentInstance() {
  */
 function setCurrentInstance(instance) {
   currentInstance = instance;
+}
+
+let compiler;
+
+export function registerRuntiomCompiler(_compiler) {
+  compiler = _compiler;
 }
