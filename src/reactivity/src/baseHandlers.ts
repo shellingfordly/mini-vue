@@ -50,7 +50,7 @@ export const mutableHandlers = {
 export const readonlyHandlers = {
   get: readonlyGet,
   set(target, key) {
-    console.warn(`${target} can't be setted, it's a readonly object`);
+    console.warn(`${target} of ${key} can't be setted, it's a readonly object`);
     return true;
   },
 };
