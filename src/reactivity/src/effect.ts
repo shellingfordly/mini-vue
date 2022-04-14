@@ -1,12 +1,14 @@
+import type { Dep } from "./dep";
 import { createDep } from "./dep";
 
-let activeEffect: ReactiveEffect | null = null;
+let activeEffect: ReactiveEffect;
 let shouldTrack = false;
 
-const tagetMap = new WeakMap();
+type KeyToDepMap = Map<any, Dep>;
+const tagetMap = new WeakMap<any, KeyToDepMap>();
 
 export class ReactiveEffect {
-  deps: Set<ReactiveEffect | null>[] = [];
+  deps: Dep[] = [];
   active = true;
 
   constructor(public fn, public scheduler?) {}
@@ -25,7 +27,7 @@ export class ReactiveEffect {
 
     const res = this.fn();
 
-    activeEffect = null;
+    activeEffect = undefined!;
     shouldTrack = false;
 
     return res;
@@ -90,10 +92,10 @@ export function track(target, type, key) {
   trackEffects(dep);
 }
 
-export function trackEffects(dep: Set<ReactiveEffect | null>) {
-  if (!dep.has(activeEffect)) {
-    dep.add(activeEffect);
-    activeEffect?.deps.push(dep);
+export function trackEffects(dep: Dep) {
+  if (!dep.has(activeEffect!)) {
+    dep.add(activeEffect!);
+    activeEffect!.deps.push(dep);
   }
 }
 
@@ -109,7 +111,7 @@ export function trigger(target, type, key) {
   }
   const dep = depsMap.get(key);
 
-  triggerEffects(dep);
+  triggerEffects(dep!);
 }
 
 export function triggerEffects(dep: Set<ReactiveEffect | null>) {
