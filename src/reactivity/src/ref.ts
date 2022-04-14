@@ -1,17 +1,12 @@
 import { hasChange, isObjectOrArray } from "../../shared/index";
-import { createDep } from "./dep";
-import {
-  isTracking,
-  ReactiveEffect,
-  trackEffects,
-  triggerEffects,
-} from "./effect";
+import { createDep, Dep } from "./dep";
+import { isTracking, trackEffects, triggerEffects } from "./effect";
 import { reactive } from "./reactive";
 
 class RefImpl<T = any> {
   private _value: T;
   private _rawValue: T;
-  private dep: Set<ReactiveEffect | null>;
+  private dep: Dep;
 
   public __v_isRef = true;
 

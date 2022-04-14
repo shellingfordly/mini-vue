@@ -1,8 +1,8 @@
 import { ReactiveEffect } from "./effect";
 
-export function createDep(
-  effects?: ReactiveEffect[]
-): Set<ReactiveEffect | null> {
-  const dep = new Set(effects);
+export type Dep = Set<ReactiveEffect>;
+
+export function createDep(effects?: ReactiveEffect[]) {
+  const dep = new Set<ReactiveEffect>(effects);
   return dep;
 }
