@@ -198,3 +198,16 @@ export function stateMachine(str: string) {
   return result;
 }
 ```
+
+### ts
+
+- ! 允许 null 和 undefined 赋值给其他类型数据
+
+```ts
+const obj: { a?: number } = {};
+
+const obj1: { a: number } = { a: 0 };
+
+obj1.a = obj.a; // 报类型错误
+obj1.a = obj.a!; // 不报错
+```
