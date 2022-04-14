@@ -10,9 +10,24 @@
 
 ## 学习笔记
 
-- reactivity
-  - [reactive](https://github.com/shellingfordly/mini-vue/blob/main/docs/reactive.md)
-  - effect
-  - ref
-- runtime-core
-- runtime-dom
+### reactivity
+
+1. [reactive](https://github.com/shellingfordly/mini-vue/blob/main/docs/reactive.md)
+
+![reactive 思维导图](./docs/imgs/reactive.png)
+
+2. effect
+
+![effect 思维导图](./docs/imgs/effect.png)
+
+3. ref
+
+![ref 思维导图](./docs/imgs/ref.png)
+
+4. computed
+
+![computed 思维导图](./docs/imgs/computed.png)
+
+### runtime-core
+
+### runtime-dom
