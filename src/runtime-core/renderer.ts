@@ -125,12 +125,12 @@ export function createRenderer({
         hostSetElementText(container, "");
         mountChildren(c2, container, parentInstance, anchor);
       } else {
-        patchKeyedChaildren(c1, c2, container, parentInstance, anchor);
+        patchKeyedChildren(c1, c2, container, parentInstance, anchor);
       }
     }
   }
 
-  function patchKeyedChaildren(c1, c2, container, parentInstance, anchor) {
+  function patchKeyedChildren(c1, c2, container, parentInstance, anchor) {
     let i = 0;
     const l2 = c2.length;
     let e1 = c1.length - 1;
@@ -437,7 +437,7 @@ export function createRenderer({
     // 初始化组件： 初始化 props、slots等等， 挂载 component 到组件实例上
     setupComponent(instance);
     // 渲染 render 返回值（虚拟节点）
-    setupRnderEffect(instance, initialVNode, container, anchor);
+    setupRenderEffect(instance, initialVNode, container, anchor);
   }
 
   /**
@@ -447,7 +447,7 @@ export function createRenderer({
    * @param initialVNode
    * @param container
    */
-  function setupRnderEffect(instance, initialVNode, container, anchor) {
+  function setupRenderEffect(instance, initialVNode, container, anchor) {
     instance.update = effect(
       () => {
         // 初始化
