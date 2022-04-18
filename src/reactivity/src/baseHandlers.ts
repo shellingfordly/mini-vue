@@ -1,44 +1,35 @@
-import { isObjectOrArray } from "../../shared/index";
-import { track, trigger } from "./effect";
-import { reactive, ReactiveFlags, readonly } from "./reactive";
+import { isObject } from "../../shared";
+import { reactive, readonly, ReactiveFlags } from "./reactive";
 
 const get = createGetter();
 const set = createSetter();
-const readonlyGet = createGetter(true);
-const shallowReadonlyGet = createGetter(true, true);
 
-function createGetter(isReadonly = false, shallow = false) {
+const readonlyGet = createGetter(true);
+const shallow = createGetter(true, true);
+
+function createGetter(isReadonly = false, isShallow = false) {
   return (target, key, receiver) => {
-    if (key === ReactiveFlags.IS_REACTIVE) {
+    console.log("key:  ", key);
+
+    if (key === ReactiveFlags.IS_REATIVE) {
       return !isReadonly;
     } else if (key === ReactiveFlags.IS_READONLY) {
       return isReadonly;
     }
 
-    // 如果不是只读对象，收集依赖
-    if (!isReadonly) {
-      track(target, "get", key);
-    }
-
     const res = Reflect.get(target, key, receiver);
 
-    if (shallow) {
-      return res;
-    }
-
-    if (isObjectOrArray(res)) {
+    if (isObject(res)) {
       return isReadonly ? readonly(res) : reactive(res);
     }
+
     return res;
   };
 }
 
 function createSetter() {
   return (target, key, value, receiver) => {
-    const res = Reflect.set(target, key, value, receiver);
-
-    trigger(target, "set", key);
-    return res;
+    return Reflect.set(target, key, value, receiver);
   };
 }
 
@@ -49,12 +40,16 @@ export const mutableHandlers = {
 
 export const readonlyHandlers = {
   get: readonlyGet,
-  set(target, key) {
-    console.warn(`${target} of ${key} can't be setted, it's a readonly object`);
+  set() {
+    console.warn("readonly objct was not setted!");
     return true;
   },
 };
 
-export const shallowReadonlyHandlers = Object.assign({}, readonlyHandlers, {
-  get: shallowReadonlyGet,
-});
+export const shallowReadonlyHandlers = {
+  shallow,
+  set() {
+    console.warn("shallowReadonly objct was not setted!");
+    return true;
+  },
+};

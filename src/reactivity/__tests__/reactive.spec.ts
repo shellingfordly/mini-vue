@@ -4,78 +4,81 @@ import {
   isReadonly,
   reactive,
   readonly,
-} from "../src/reactive";
+} from "../../reactivity/src/reactive";
 
 describe("reactive", () => {
   it("create reactive", () => {
-    const oriObj = { a: 1 };
+    const oriObj = { a: { b: 1 } };
     const newObj = reactive(oriObj);
     expect(newObj).not.toBe(oriObj);
-    expect(newObj.a).toBe(1);
+    expect(newObj.a).not.toBe(oriObj.a);
     expect("a" in newObj).toBe(true);
     expect(Object.keys(newObj)).toEqual(["a"]);
     expect(isProxy(newObj)).toBe(true);
   });
 
-  it("create readonly", () => {
-    const oriObj = { a: 1 };
+  it.only("create readonly", () => {
+    const oriObj = { a: { b: { c: 1 } } };
     const newObj = readonly(oriObj);
 
     console.warn = jest.fn();
 
     expect(newObj).not.toBe(oriObj);
-    expect(newObj.a).toBe(1);
+    expect(newObj.a.b.c).toBe(1);
     expect("a" in newObj).toBe(true);
     expect(Object.keys(newObj)).toEqual(["a"]);
+    expect(isReadonly(newObj)).toBe(true);
+    expect(isReadonly(newObj.a)).toBe(true);
+    expect(isReadonly(newObj.a.b)).toBe(true);
     expect(isProxy(newObj)).toBe(true);
 
     newObj.a = 2;
     expect(console.warn).toBeCalled();
   });
 
-  it("isReactive", () => {
-    const oriObj = { a: 1 };
-    const newObj = reactive(oriObj);
+  // it("isReactive", () => {
+  //   const oriObj = { a: 1 };
+  //   const newObj = reactive(oriObj);
 
-    expect(isReactive(newObj)).toBe(true);
-    expect(isReactive(oriObj)).toBe(false);
-  });
+  //   expect(isReactive(newObj)).toBe(true);
+  //   expect(isReactive(oriObj)).toBe(false);
+  // });
 
-  it("isReadonly", () => {
-    const oriObj = { a: 1 };
-    const newObj = readonly(oriObj);
+  // it("isReadonly", () => {
+  //   const oriObj = { a: 1 };
+  //   const newObj = readonly(oriObj);
 
-    expect(isReadonly(newObj)).toBe(true);
-    expect(isReadonly(oriObj)).toBe(false);
-  });
+  //   expect(isReadonly(newObj)).toBe(true);
+  //   expect(isReadonly(oriObj)).toBe(false);
+  // });
 
-  it("nested reactive object", () => {
-    const reactObj = reactive({
-      info: {
-        name: "Tom",
-        age: 18,
-      },
-      arr: [{ id: 1 }, { id: 2 }],
-    });
+  // it("nested reactive object", () => {
+  //   const reactObj = reactive({
+  //     info: {
+  //       name: "Tom",
+  //       age: 18,
+  //     },
+  //     arr: [{ id: 1 }, { id: 2 }],
+  //   });
 
-    expect(isReactive(reactObj)).toBe(true);
-    expect(isReactive(reactObj.info)).toBe(true);
-    expect(isReactive(reactObj.arr)).toBe(true);
-    expect(isReactive(reactObj.arr[0])).toBe(true);
-  });
+  //   expect(isReactive(reactObj)).toBe(true);
+  //   expect(isReactive(reactObj.info)).toBe(true);
+  //   expect(isReactive(reactObj.arr)).toBe(true);
+  //   expect(isReactive(reactObj.arr[0])).toBe(true);
+  // });
 
-  it("nested readonly object", () => {
-    const reactObj = readonly({
-      info: {
-        name: "Tom",
-        age: 18,
-      },
-      arr: [{ id: 1 }, { id: 2 }],
-    });
+  // it("nested readonly object", () => {
+  //   const reactObj = readonly({
+  //     info: {
+  //       name: "Tom",
+  //       age: 18,
+  //     },
+  //     arr: [{ id: 1 }, { id: 2 }],
+  //   });
 
-    expect(isReadonly(reactObj)).toBe(true);
-    expect(isReadonly(reactObj.info)).toBe(true);
-    expect(isReadonly(reactObj.arr)).toBe(true);
-    expect(isReadonly(reactObj.arr[0])).toBe(true);
-  });
+  //   expect(isReadonly(reactObj)).toBe(true);
+  //   expect(isReadonly(reactObj.info)).toBe(true);
+  //   expect(isReadonly(reactObj.arr)).toBe(true);
+  //   expect(isReadonly(reactObj.arr[0])).toBe(true);
+  // });
 });
