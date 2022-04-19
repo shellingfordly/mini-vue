@@ -1,4 +1,5 @@
 import { isObject } from "../../shared";
+import { track } from "./effect";
 import { reactive, readonly, ReactiveFlags } from "./reactive";
 
 const get = createGetter();
@@ -9,8 +10,6 @@ const shallow = createGetter(true, true);
 
 function createGetter(isReadonly = false, isShallow = false) {
   return (target, key, receiver) => {
-    console.log("key:  ", key);
-
     if (key === ReactiveFlags.IS_REATIVE) {
       return !isReadonly;
     } else if (key === ReactiveFlags.IS_READONLY) {
@@ -18,6 +17,10 @@ function createGetter(isReadonly = false, isShallow = false) {
     }
 
     const res = Reflect.get(target, key, receiver);
+
+    if (!isReadonly) {
+      track(target, key);
+    }
 
     if (isObject(res)) {
       return isReadonly ? readonly(res) : reactive(res);
